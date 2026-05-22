@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Hybrid Warrior — Anthony Anderson</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F7F6F1;font-family:Georgia,serif}
+input,textarea,button{font-family:Georgia,serif}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:#2A8C8C44;border-radius:2px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect,useRef}=React;
+
+const C={
+  navy:"#1C2B39",navy2:"#243447",teal:"#2A8C8C",teal2:"#1E6E6E",
+  tealLight:"#E8F4F4",cream:"#F7F6F1",white:"#FFFFFF",
+  gray:"#6B7280",grayLight:"#F3F4F6",grayBorder:"#E5E7EB",
+  red:"#C0392B",green:"#1E7A4A",greenLight:"#F0FDF4",
+  amber:"#D97706",amberLight:"#FFFBEB",
+};
+
+const LS={
+  get:(k,d=null)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch{return d;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}},
+};
+
+const PLAN=[
+  {
+    day:"Monday",label:"Gravity Chamber",color:C.navy,
+    calories:"3800–4000 kcal",carbTier:"HIGH",zone2:false,
+    sections:[
+      {name:"MAIN LIFTS",color:C.teal,exercises:[
+        {name:"Trap Bar Deadlift",sets:5,reps:"5",tempo:"2-0-1",rest:180,
+          cue:"75–80% 1RM. Rest 3 min. Hip hinge, neutral spine, drive through floor.",
+          swaps:["Conventional Deadlift — Same hip hinge, slightly more lower back demand","Romanian Deadlift — Great hamstring bias if trap bar unavailable"]},
+        {name:"Weighted Pull-Ups",sets:4,reps:"6–8",tempo:"2-1-1",rest:120,
+          cue:"Rest 2 min. Full hang at bottom. Depress scapula before each rep.",
+          swaps:["Lat Pulldown — Use if weighted pull-ups not yet achievable","Band-Assisted Pull-Ups — Match resistance to get full ROM"]},
+        {name:"Incline DB Press",sets:4,reps:"8–10",tempo:"3-1-1",rest:90,
+          cue:"Rest 90 sec. 30–45 deg incline. Elbows at 45 deg. Feel stretch at bottom.",
+          swaps:["Incline Barbell Press — Greater load potential, less shoulder stability demand","Cable Incline Press — Constant tension throughout full ROM"]},
+        {name:"Bulgarian Split Squat",sets:3,reps:"8/side",tempo:"3-1-1",rest:90,
+          cue:"Rest 90 sec. Rear foot elevated. Front knee tracks toes. Hips square.",
+          swaps:["DB Walking Lunge — More dynamic, great glute activation","Step-Up — Lower skill demand, same single-leg stimulus"]},
+        {name:"Chest Supported Row",sets:4,reps:"10",tempo:"2-1-2",rest:75,
+          cue:"Rest 75 sec. Chest on pad. Full arm hang at bottom. Row to chest. No shrug.",
+          swaps:["Seated Cable Row — Good substitute if machine unavailable","Single-Arm DB Row — Greater ROM and stretch at bottom"]},
+        {name:"Farmer Carries",sets:4,reps:"40m",tempo:"",rest:90,
+          cue:"Rest 90 sec. Heavy. Shoulders packed. Tall posture. Controlled breathing.",
+          swaps:["Suitcase Carry — Single arm, high anti-lateral core demand","Trap Bar Carry — Neutral grip, easier to load heavy"]},
+      ]},
+      {name:"FINISHER — CHOOSE 1",color:C.navy2,exercises:[
+        {name:"Saiyan Sprint Assault — 5 Rounds",sets:5,reps:"1 round",tempo:"",rest:0,
+          cue:"Assault Bike 20s → Farmer Carry 40m → 10 Burpees. Full effort every round.",
+          swaps:["Density Circuit — 12 min AMRAP: Pull-Ups, Push-Ups, Goblet Squats, Mountain Climbers"]},
+        {name:"Weighted Vest Punisher — 20 min",sets:1,reps:"20 min",tempo:"",rest:0,
+          cue:"20–40 lb vest. Incline/stair/sled/lunge work. Steady grind.",
+          swaps:["Carry Hell — Farmer → Front Rack → Overhead → Sandbag 40m each, 4 rounds"]},
+      ]},
+    ],
+  },
+  {
+    day:"Tuesday",label:"Bodyweight Mastery",color:C.teal2,
+    calories:"3400–3600 kcal",carbTier:"MODERATE",zone2:false,
+    sections:[
+      {name:"SKILL WORK",color:C.navy,exercises:[
+        {name:"Pull-Ups",sets:5,reps:"AMRAP",tempo:"",rest:90,
+          cue:"Stop 1–2 reps before failure. Full hang. Depress scapula before each rep.",
+          swaps:["Band-Assisted Pull-Ups — Use to get more volume per set","TRX Inverted Row — Horizontal pull alternative"]},
+        {name:"Deficit Push-Ups",sets:4,reps:"15–20",tempo:"3-1-1",rest:60,
+          cue:"Rest 60 sec. Hands on plates or blocks. Full chest stretch at bottom.",
+          swaps:["Pike Push-Ups — Shifts emphasis to shoulders","Archer Push-Ups — Unilateral load, harder variation"]},
+        {name:"Pistol Squat Progressions",sets:4,reps:"6/side",tempo:"3-2-1",rest:75,
+          cue:"Rest 75 sec. Use regression as needed. Full depth — heel stays grounded.",
+          swaps:["Bulgarian Split Squat — Similar single-leg demand, easier to load","Single-Leg Box Squat — Controlled depth regression"]},
+        {name:"L-Sits",sets:5,reps:"20–30s",tempo:"",rest:45,
+          cue:"Compress hard. Push floor away. Legs parallel or above. Breathe through it.",
+          swaps:["Tuck L-Sit — Knees bent regression","Hollow Body Hold — Same anterior core demand, floor-based"]},
+        {name:"Handstand Holds",sets:5,reps:"20–60s",tempo:"",rest:60,
+          cue:"Push floor away. Ribs down. Squeeze glutes. Stack wrists–shoulders–hips.",
+          swaps:["Pike Hold on Floor — Entry-level regression","Wall Handstand — Supported version for building time under tension"]},
+        {name:"Hanging Leg Raises",sets:4,reps:"12–15",tempo:"",rest:60,
+          cue:"Compress abs — draw knees to chest. No swinging. Controlled descent.",
+          swaps:["Ab Wheel Rollout — Anti-extension core alternative","Lying Leg Raise — Floor-based regression"]},
+      ]},
+      {name:"MOBILITY FLOW — 20–30 MIN",color:C.teal2,exercises:[
+        {name:"Knee-Over-Toe Rocks",sets:2,reps:"15",tempo:"",rest:0,cue:"Slow and controlled. Drive knee past toes. Ankle mobility focus.",swaps:[]},
+        {name:"Deep Squat Hold",sets:2,reps:"45–60s",tempo:"",rest:0,cue:"Breathe low into stomach. Heels down. Chest up.",swaps:[]},
+        {name:"90/90 Hip Rotations",sets:2,reps:"10/side",tempo:"",rest:0,cue:"Tall spine. Rotate through hip. Both directions.",swaps:[]},
+        {name:"Couch Stretch",sets:2,reps:"45s/side",tempo:"",rest:0,cue:"Squeeze glute of rear leg. Tall chest. Don't flare ribs.",swaps:[]},
+        {name:"Thoracic Open Books",sets:2,reps:"10/side",tempo:"",rest:0,cue:"Rotate through ribs. Keep knees stacked. Follow hand with eyes.",swaps:[]},
+        {name:"Scap CARs",sets:2,reps:"8",tempo:"",rest:0,cue:"Full controlled scapular rotation. Slow and deliberate.",swaps:[]},
+        {name:"Hanging Decompression",sets:2,reps:"30–45s",tempo:"",rest:0,cue:"Passive hang. Let spine decompress. Relax everything below shoulders.",swaps:[]},
+      ]},
+    ],
+  },
+  {
+    day:"Wednesday",label:"Recovery + Endurance",color:C.green,
+    calories:"2900–3100 kcal",carbTier:"LOW",zone2:true,
+    sections:[
+      {name:"ZONE 2 CARDIO — CHOOSE 1 (40–60 MIN)",color:C.teal,exercises:[
+        {name:"Incline Treadmill Walk",sets:1,reps:"40–60 min",tempo:"",rest:0,
+          cue:"HR 120–140 bpm. Conversational pace. Nose breathing preferred.",
+          swaps:["Jogging — Progress once Zone 2 HR stays stable","Cycling — Low impact, joint-friendly option"]},
+        {name:"Assault Bike / Row Machine",sets:1,reps:"40–60 min",tempo:"",rest:0,
+          cue:"Steady state. Stay in Zone 2 throughout. No surging.",
+          swaps:["Swimming — Full body, very low joint stress","Rucking — 20–40 lb pack, Zone 2 plus loaded carry benefit"]},
+      ]},
+      {name:"RECOVERY CIRCUIT — 3 ROUNDS",color:C.navy2,exercises:[
+        {name:"Deep Squat Hold",sets:3,reps:"60s",tempo:"",rest:0,cue:"Breathe low into stomach. Heels down. Chest up.",swaps:[]},
+        {name:"Couch Stretch",sets:3,reps:"45s/side",tempo:"",rest:0,cue:"Squeeze glute of rear leg. Tall chest.",swaps:[]},
+        {name:"Thoracic Open Books",sets:3,reps:"10/side",tempo:"",rest:0,cue:"Rotate through ribs. Keep knees stacked.",swaps:[]},
+        {name:"Tibialis Raises",sets:3,reps:"20",tempo:"",rest:0,
+          cue:"Pull toes aggressively upward. Slow and controlled.",
+          swaps:["Banded Dorsiflexion — Seated band version","Toe Taps — Standing, lower demand"]},
+        {name:"Scap Wall Slides",sets:3,reps:"15",tempo:"",rest:0,cue:"Arms slide up wall. Pack scapulae down as arms rise.",swaps:[]},
+        {name:"Neck Controlled Rotations",sets:3,reps:"10",tempo:"",rest:0,cue:"Slow and deliberate. Full range. Zero pain.",swaps:[]},
+      ]},
+    ],
+  },
+  {
+    day:"Thursday",label:"Combat + Athleticism",color:C.amber,
+    calories:"3500–3700 kcal",carbTier:"MODERATE",zone2:false,
+    sections:[
+      {name:"POWER & CONDITIONING",color:C.navy,exercises:[
+        {name:"Sprint Intervals — 100m",sets:10,reps:"1",tempo:"",rest:60,
+          cue:"Walk-back recovery between each. Full effort. Drive knees. Stay tall.",
+          swaps:["Bike Intervals — 10×20s all-out, 40s rest","Rowing Intervals — 10×150m, full recovery between"]},
+        {name:"Plyo Push-Ups",sets:5,reps:"5",tempo:"explosive",rest:60,
+          cue:"Full ROM. Explosive concentric. Reset completely between reps.",
+          swaps:["Clapping Push-Ups — Same explosive intent","Med Ball Chest Pass — Against wall, standing version"]},
+        {name:"Rotational Med Ball Slams",sets:4,reps:"8/side",tempo:"",rest:60,
+          cue:"Rotate from hips. Slam with intent. Reload controlled.",
+          swaps:["Cable Wood Chop — Rotational resistance, more controlled loading","Rotational KB Swing — Hip-driven rotation pattern"]},
+        {name:"Bear Crawls",sets:4,reps:"30m",tempo:"",rest:60,
+          cue:"Hips low. Opposite hand and foot. Core braced. Don't let hips rotate.",
+          swaps:["Crab Walk — Posterior chain version","Contralateral Crawl — More CNS demand variation"]},
+        {name:"Push Press",sets:5,reps:"3",tempo:"",rest:150,
+          cue:"80–85% 1RM. Rest 2–3 min. Dip → drive → lockout overhead.",
+          swaps:["DB Push Press — Unilateral option if barbell unavailable","Arnold Press — Shoulder accessory replacement"]},
+      ]},
+      {name:"HEAVY BAG — 8 ROUNDS (2 MIN ON / 1 MIN OFF)",color:C.teal2,exercises:[
+        {name:"Heavy Bag Work",sets:8,reps:"2 min / 1 min rest",tempo:"",rest:60,
+          cue:"Stay on balls of feet. Chin tucked. Exhale with punches. Rotate hips on power shots. Return hands to face.\n\nCombos: 1-2 | 1-2-3 | 2-3-2 | Jab-Body-Hook | Sprawl-1-2",
+          swaps:["Shadow Boxing — No bag needed, same conditioning and skill work","Jump Rope — Footwork and cardio alternative"]},
+      ]},
+    ],
+  },
+  {
+    day:"Friday",label:"Hypertrophy + Functional Armor",color:C.navy2,
+    calories:"3600–3800 kcal",carbTier:"HIGH",zone2:false,
+    sections:[
+      {name:"HYPERTROPHY",color:C.navy,exercises:[
+        {name:"Weighted Dips",sets:4,reps:"8–12",tempo:"3-1-1",rest:90,
+          cue:"Slight forward lean — chest dominant. Upper arm parallel at bottom.",
+          swaps:["Cable Crossover — Chest isolation if shoulder discomfort","Chest Press Machine — Controlled, less stability demand"]},
+        {name:"Hammer Strength Pulldown",sets:4,reps:"10–12",tempo:"2-1-2",rest:75,
+          cue:"Full arm extension at top. Depress scapula before pulling. Elbows to hips.",
+          swaps:["Lat Pulldown — Standard cable version","Cable Straight-Arm Pulldown — More lat isolation at bottom"]},
+        {name:"Hack Squat",sets:4,reps:"10–15",tempo:"3-1-1",rest:90,
+          cue:"Knees track toes. Full controlled range. Lighter than strength days.",
+          swaps:["Leg Press — Lower skill demand, same quad focus","Front Squat — More core and upper back demand"]},
+        {name:"Romanian Deadlift",sets:4,reps:"8–10",tempo:"3-1-1",rest:90,
+          cue:"Hip hinge only. Neutral spine. Feel hamstring stretch. Stop before lumbar rounds.",
+          swaps:["Good Morning — Barbell on back, same hamstring pattern","Nordic Curl — Eccentric hamstring, very high demand"]},
+        {name:"Seated Lateral Raises",sets:4,reps:"15–20",tempo:"2-2-2",rest:60,
+          cue:"Lead with elbows. Pinky up at top. Full 2s eccentric.",
+          swaps:["Cable Lateral Raise — Constant tension through full ROM","Standing DB Lateral Raise — Allows slight body lean for loading"]},
+        {name:"Reverse Hypers",sets:3,reps:"15",tempo:"",rest:60,
+          cue:"Controlled swing. Feel lumbar extension. No jerking at top.",
+          swaps:["Back Extension — 45-degree bench version","45-Deg Good Morning — Standing, higher load potential"]},
+        {name:"Tibialis Raises",sets:4,reps:"20",tempo:"",rest:45,
+          cue:"Pull toes aggressively upward. Full ROM. Slow controlled rep.",
+          swaps:["Banded Dorsiflexion — Seated with band","Toe Taps — Standing, lower demand version"]},
+      ]},
+      {name:"FINISHER — LOADED CARRY GAUNTLET",color:C.teal2,exercises:[
+        {name:"Carry Gauntlet — 3 Rounds",sets:3,reps:"40m each carry",tempo:"",rest:120,
+          cue:"Farmer Carry → Front Rack Carry → Overhead Carry. No rest between carries within a round. Rest between rounds.",
+          swaps:["Suitcase Carry — Anti-lateral core emphasis","Yoke Walk — Ultimate loaded carry if available"]},
+      ]},
+    ],
+  },
+  {
+    day:"Saturday",label:"Dungeon Day",color:C.red,
+    calories:"4000–4300 kcal",carbTier:"HIGH",zone2:false,
+    sections:[
+      {name:"OPTION 1 — SHADOW MONARCH",color:C.navy,exercises:[
+        {name:"Shadow Monarch — 5 Rounds",sets:5,reps:"1 round",tempo:"",rest:0,
+          cue:"400m run → 20 burpees → 15 pull-ups → 20 sandbag squats → 40 walking lunges. Full effort. No shortcuts.",
+          swaps:["Saiyan Chamber — If you prefer structured EMOM format"]},
+      ]},
+      {name:"OPTION 2 — SAIYAN CHAMBER",color:C.teal2,exercises:[
+        {name:"Saiyan Chamber — 40 min EMOM",sets:1,reps:"40 min",tempo:"",rest:0,
+          cue:"Rotate each minute: sled pushes, rope slams, KB swings, pull-ups, jump rope. Max output every minute.",
+          swaps:["Shinobi Trials — Outdoor option with weighted vest"]},
+      ]},
+      {name:"OPTION 3 — SHINOBI TRIALS",color:C.navy2,exercises:[
+        {name:"Shinobi Trials",sets:1,reps:"For time",tempo:"",rest:0,
+          cue:"Weighted vest stair climbs, hill sprints, crawls, carries, monkey bars. Complete the full gauntlet.",
+          swaps:["Shadow Monarch — Gym-based alternative for indoor days"]},
+      ]},
+    ],
+  },
+  {
+    day:"Sunday",label:"Restoration Flow",color:C.gray,
+    calories:"0–800 (fast) / 1200–1800 kcal",carbTier:"LOW",zone2:false,
+    sections:[
+      {name:"RESTORATION FLOW",color:C.teal,exercises:[
+        {name:"Crocodile Breathing",sets:1,reps:"2 min",tempo:"",rest:0,cue:"Lie prone. Breathe into belly. 360-degree expansion. Full exhale.",swaps:[]},
+        {name:"Cat-Cow",sets:2,reps:"10",tempo:"",rest:0,cue:"Breath-led movement. Full spinal flexion and extension each rep.",swaps:[]},
+        {name:"Child's Pose with Reach",sets:2,reps:"30s",tempo:"",rest:0,cue:"Reach arms long. Breathe into back ribs. Full hip flexion.",swaps:[]},
+        {name:"Deep Squat Hold",sets:1,reps:"1–2 min",tempo:"",rest:0,cue:"Accumulate over time. Breathe low. Heels down if possible.",swaps:[]},
+        {name:"90/90 Hip Flow",sets:2,reps:"10/side",tempo:"",rest:0,cue:"Tall spine. Rotate through hip. Both directions.",swaps:[]},
+        {name:"Thoracic Rotation",sets:2,reps:"10/side",tempo:"",rest:0,cue:"Rotate through ribs. Keep lower body still.",swaps:[]},
+        {name:"Hanging Decompression",sets:2,reps:"30–60s",tempo:"",rest:0,cue:"Passive hang. Let spine fully decompress. Relax completely.",swaps:[]},
+        {name:"Tibialis + Calf Raises",sets:1,reps:"20 each",tempo:"",rest:0,cue:"Full ROM both directions. Slow controlled reps.",swaps:[]},
+      ]},
+    ],
+  },
+];
+
+const MEALS=[
+  {
+    name:"Meal 1 — Warrior Breakfast",time:"Morning",cal:950,protein:65,carbs:105,fat:30,
+    items:[
+      {section:"Oat Bowl",foods:["1.5 cups dry oats","1 large banana","1 cup blueberries","2 tbsp chia seeds","2 tbsp hemp hearts","1 oz walnuts","Cinnamon to taste"]},
+      {section:"Egg Scramble",foods:["4 whole eggs","2 cups liquid egg whites","2 cups spinach","1 cup mushrooms","1/2 cup diced peppers"]},
+    ],
+  },
+  {
+    name:"Meal 2 — Post-Workout Recovery",time:"Post-Training",cal:950,protein:55,carbs:105,fat:25,
+    items:[
+      {section:"Recovery Bowl",foods:["2 cups cooked jasmine rice","1 cup black beans","4 whole eggs","1 cup egg whites","1/2 avocado","2 cups roasted vegetables"]},
+      {section:"Fruit",foods:["2 kiwi OR 1 cup pineapple"]},
+    ],
+  },
+  {
+    name:"Meal 3 — Midday Athlete Meal",time:"Midday",cal:850,protein:55,carbs:80,fat:25,
+    items:[
+      {section:"Wraps",foods:["2 high-protein wraps","4 hardboiled eggs","1/2 cup hummus","2 cups spinach","1/2 cucumber sliced","1 medium tomato","1 cup shredded carrots"]},
+      {section:"Side",foods:["1.5 cups edamame","1 apple"]},
+    ],
+  },
+  {
+    name:"Meal 4 — Dinner",time:"Evening",cal:800,protein:60,carbs:75,fat:18,
+    items:[
+      {section:"Lentil Pasta Bowl",foods:["5 oz dry lentil pasta","3 whole eggs","1.5 cups egg whites","2 cups spinach","1 cup mushrooms","2 tsp olive oil","2 tbsp nutritional yeast","Garlic / onion / spices"]},
+      {section:"Salad",foods:["3 cups mixed greens","1 tbsp pumpkin seeds","1/2 cup berries","Balsamic vinegar"]},
+    ],
+  },
+  {
+    name:"Meal 5 — Recovery Smoothie",time:"Night",cal:450,protein:40,carbs:40,fat:8,
+    items:[
+      {section:"Smoothie",foods:["2 scoops plant protein","1 banana","1 cup frozen berries","1 tbsp flaxseed","1 tbsp cacao powder","1 cup spinach","8 oz tart cherry juice","Water / ice"]},
+      {section:"Optional — Hard Training Days",foods:["+ 1 tbsp peanut butter"]},
+    ],
+  },
+];
+
+const CALORIE_CYCLING=[
+  {day:"Monday",   range:"3800–4000",tier:"HIGH"},
+  {day:"Tuesday",  range:"3400–3600",tier:"MODERATE"},
+  {day:"Wednesday",range:"2900–3100",tier:"LOW"},
+  {day:"Thursday", range:"3500–3700",tier:"MODERATE"},
+  {day:"Friday",   range:"3600–3800",tier:"HIGH"},
+  {day:"Saturday", range:"4000–4300",tier:"HIGH"},
+  {day:"Sunday",   range:"0–1800 (fast)",tier:"LOW"},
+];
+
+const SUPPLEMENTS={
+  daily:["Creatine monohydrate — 5g","Magnesium glycinate","Vegan omega-3","Vitamin D3 + K2","Vitamin B12","Electrolytes"],
+  recovery:["Tart cherry","Turmeric / curcumin","Ginger","Probiotic"],
+};
+
+const today=()=>new Date().toISOString().slice(0,10);
+const setKey=(di,si,ei,s)=>`hw_set_${di}_${si}_${ei}_${s}_${today()}`;
+const noteKey=(di)=>`hw_note_${di}_${today()}`;
+const histKey=()=>`hw_hist`;
+const fmt=(s)=>`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+
+const playBeep=()=>{
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [[0,880],[0.18,880],[0.36,1200]].forEach(([t,freq])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=freq;
+      g.gain.setValueAtTime(0.35,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.18);
+      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.2);
+    });
+  }catch(e){}
+};
+
+const btn=(bg,fg=C.white,sm=false,full=false,extra={})=>({
+  background:bg,color:fg,border:"none",borderRadius:7,
+  padding:sm?"4px 11px":"10px 20px",fontFamily:"Georgia,serif",
+  fontSize:sm?11:13,fontWeight:"bold",cursor:"pointer",
+  width:full?"100%":"auto",...extra,
+});
+const inp={width:"100%",border:`1.5px solid ${C.grayBorder}`,borderRadius:7,
+  padding:"7px 10px",fontSize:13,fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"};
+
+// ── REST BAR ──────────────────────────────────────────────────────────
+function RestBar({seconds,active,onStart,onSkip,onToggle}){
+  const urgentColor=seconds<=10?C.red:seconds<=30?C.amber:C.teal;
+  if(!active&&seconds===0) return null;
+  return(
+    <div style={{position:"fixed",bottom:60,left:0,right:0,background:C.navy,
+      padding:"10px 16px",display:"flex",alignItems:"center",gap:12,
+      boxShadow:"0 -2px 10px rgba(0,0,0,0.35)",zIndex:99}}>
+      <div style={{flex:1}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+          <span style={{fontSize:10,color:C.tealLight,fontWeight:"bold",letterSpacing:1}}>REST TIMER</span>
+          <span style={{fontSize:22,fontWeight:"bold",color:urgentColor,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{fmt(seconds)}</span>
+        </div>
+        <div style={{background:C.navy2,borderRadius:4,height:5}}>
+          <div style={{background:urgentColor,width:`${Math.min((seconds/180)*100,100)}%`,
+            height:5,borderRadius:4,transition:"width 1s linear"}}/>
+        </div>
+      </div>
+      <button onClick={onToggle} style={btn(active?C.amber:C.green,C.white,true)}>{active?"Pause":"Go"}</button>
+      <button onClick={onSkip} style={btn(C.gray,C.white,true)}>Skip</button>
+    </div>
+  );
+}
+
+// ── REST PRESETS ───────────────────────────────────────────────────────
+function RestPresets({onStart}){
+  return(
+    <div style={{position:"fixed",bottom:60,left:0,right:0,background:C.navy2,
+      padding:"7px 12px",display:"flex",alignItems:"center",gap:6,
+      boxShadow:"0 -2px 8px rgba(0,0,0,0.2)",zIndex:99,overflowX:"auto"}}>
+      <span style={{fontSize:10,color:C.tealLight,fontWeight:"bold",flexShrink:0}}>REST:</span>
+      {[[60,"1:00"],[90,"1:30"],[120,"2:00"],[150,"2:30"],[180,"3:00"]].map(([s,label])=>(
+        <button key={s} onClick={()=>onStart(s)}
+          style={btn(C.teal,C.white,true,false,{flexShrink:0,fontSize:10,padding:"4px 10px"})}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── SET ROW ────────────────────────────────────────────────────────────
+function SetRow({dayIdx,secIdx,exIdx,setNum,defaultReps,restSeconds,onStartRest}){
+  const k=setKey(dayIdx,secIdx,exIdx,setNum);
+  const saved=LS.get(k,{weight:"",reps:"",done:false});
+  const[weight,setWeight]=useState(saved.weight);
+  const[reps,setReps]=useState(saved.reps||defaultReps);
+  const[done,setDone]=useState(saved.done);
+  const save=(w,r,d)=>LS.set(k,{weight:w,reps:r,done:d});
+  const toggleDone=()=>{
+    const nd=!done;setDone(nd);save(weight,reps,nd);
+    if(nd){
+      const hist=LS.get(histKey(),[]);
+      hist.push({date:today(),day:PLAN[dayIdx].day,
+        exercise:PLAN[dayIdx].sections[secIdx].exercises[exIdx].name,
+        set:setNum,weight,reps});
+      LS.set(histKey(),hist.slice(-500));
+      if(restSeconds>0)onStartRest(restSeconds);
+    }
+  };
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",
+      background:done?C.greenLight:C.white,borderRadius:6,marginBottom:4,
+      border:`1px solid ${done?C.green:C.grayBorder}`}}>
+      <div style={{fontSize:11,color:C.gray,minWidth:36,fontWeight:"bold"}}>Set {setNum}</div>
+      <input value={weight} onChange={e=>{setWeight(e.target.value);save(e.target.value,reps,done);}}
+        placeholder="lbs" style={{...inp,width:60,textAlign:"center",padding:"5px 8px",fontSize:12}}/>
+      <span style={{fontSize:11,color:C.gray}}>×</span>
+      <input value={reps} onChange={e=>{setReps(e.target.value);save(weight,e.target.value,done);}}
+        placeholder={defaultReps} style={{...inp,width:60,textAlign:"center",padding:"5px 8px",fontSize:12}}/>
+      <span style={{fontSize:11,color:C.gray,flex:1}}>reps</span>
+      <div onClick={toggleDone} style={{width:22,height:22,borderRadius:5,
+        border:`2px solid ${done?C.green:C.grayBorder}`,background:done?C.green:C.white,
+        display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>
+        {done&&<span style={{color:C.white,fontSize:12,fontWeight:"bold"}}>✓</span>}
+      </div>
+    </div>
+  );
+}
+
+// ── EXERCISE CARD ──────────────────────────────────────────────────────
+function ExCard({ex,dayIdx,secIdx,exIdx,onStartRest}){
+  const[open,setOpen]=useState(false);
+  const[showSwaps,setShowSwaps]=useState(false);
+  const sets=Array.from({length:ex.sets},(_,i)=>i+1);
+  const allDone=sets.every(s=>(LS.get(setKey(dayIdx,secIdx,exIdx,s),{done:false})).done);
+  const hasSwaps=ex.swaps&&ex.swaps.length>0;
+  return(
+    <div style={{marginBottom:8,borderRadius:8,overflow:"hidden",
+      boxShadow:"0 1px 4px rgba(0,0,0,0.07)",
+      border:`1px solid ${allDone?C.green:C.grayBorder}`}}>
+      <div onClick={()=>setOpen(!open)} style={{padding:"10px 14px",cursor:"pointer",
+        background:allDone?C.greenLight:C.white,
+        display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontWeight:"bold",fontSize:13,color:allDone?C.green:C.navy}}>{ex.name}</div>
+          <div style={{fontSize:11,color:C.teal2,marginTop:2}}>
+            {ex.sets} × {ex.reps}
+            {ex.tempo?` | ${ex.tempo}`:""}
+            {ex.rest>0?` | Rest ${fmt(ex.rest)}`:""}
+          </div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+          {allDone&&<span style={{fontSize:11,fontWeight:"bold",color:C.green}}>✓</span>}
+          {hasSwaps&&(
+            <button onClick={e=>{e.stopPropagation();setShowSwaps(!showSwaps);}}
+              style={btn(showSwaps?C.teal:C.navy2,C.white,true,false,{fontSize:10,padding:"3px 8px"})}>
+              {showSwaps?"×":"Swap"}
+            </button>
+          )}
+          <span style={{color:C.gray,fontSize:16,marginLeft:2}}>{open?"▲":"▼"}</span>
+        </div>
+      </div>
+      {showSwaps&&(
+        <div style={{background:C.amberLight,borderTop:`1px solid ${C.amber}33`,padding:"8px 14px"}}>
+          <div style={{fontSize:10,color:C.amber,fontWeight:"bold",marginBottom:6,letterSpacing:0.5}}>EXERCISE SWAPS</div>
+          {ex.swaps.map((s,i)=>(
+            <div key={i} style={{fontSize:11,color:C.navy,padding:"5px 0",
+              borderBottom:i<ex.swaps.length-1?`1px solid ${C.amber}22`:"none",lineHeight:1.4}}>
+              → {s}
+            </div>
+          ))}
+        </div>
+      )}
+      {open&&(
+        <div style={{padding:"10px 14px",background:C.grayLight,borderTop:`1px solid ${C.grayBorder}`}}>
+          <div style={{fontSize:11,color:C.gray,fontStyle:"italic",marginBottom:10,
+            lineHeight:1.5,whiteSpace:"pre-line"}}>{ex.cue}</div>
+          {sets.map(s=>(
+            <SetRow key={s} dayIdx={dayIdx} secIdx={secIdx} exIdx={exIdx}
+              setNum={s} defaultReps={ex.reps} restSeconds={ex.rest||0} onStartRest={onStartRest}/>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── DAY VIEW ───────────────────────────────────────────────────────────
+function DayView({dayIdx,onStartRest}){
+  const day=PLAN[dayIdx];
+  const[note,setNote]=useState(()=>LS.get(noteKey(dayIdx),""));
+  const[showNote,setShowNote]=useState(false);
+  const saveNote=v=>{setNote(v);LS.set(noteKey(dayIdx),v);};
+  const totalEx=day.sections.reduce((a,s)=>a+s.exercises.length,0);
+  const doneEx=day.sections.reduce((a,sec)=>a+sec.exercises.reduce((b,ex,ei)=>{
+    const si=day.sections.indexOf(sec);
+    return b+(Array.from({length:ex.sets},(_,i)=>i+1).every(
+      s2=>(LS.get(setKey(dayIdx,si,ei,s2),{done:false})).done)?1:0);
+  },0),0);
+  const pct=Math.round((doneEx/totalEx)*100);
+  const carbColor=day.carbTier==="HIGH"?C.green:day.carbTier==="MODERATE"?C.amber:C.red;
+  return(
+    <div style={{paddingBottom:24}}>
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+          <span style={{fontSize:12,fontWeight:"bold",color:C.navy}}>Session Progress</span>
+          <span style={{fontSize:12,fontWeight:"bold",color:pct===100?C.green:C.teal}}>{doneEx}/{totalEx}  {pct}%</span>
+        </div>
+        <div style={{background:C.grayLight,borderRadius:6,height:10}}>
+          <div style={{background:pct===100?C.green:C.teal,width:`${pct}%`,height:10,borderRadius:6,transition:"width 0.3s"}}/>
+        </div>
+        {pct===100&&<div style={{textAlign:"center",marginTop:8,fontSize:12,fontWeight:"bold",color:C.green}}>Session complete 💪</div>}
+      </div>
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",
+        padding:"10px 14px",marginBottom:12,display:"flex",alignItems:"center",gap:12}}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:10,color:C.gray,fontWeight:"bold",letterSpacing:0.5,marginBottom:2}}>CALORIE TARGET</div>
+          <div style={{fontSize:13,fontWeight:"bold",color:C.navy}}>{day.calories}</div>
+        </div>
+        <div style={{borderLeft:`1px solid ${C.grayBorder}`,paddingLeft:12}}>
+          <div style={{fontSize:10,color:C.gray,fontWeight:"bold",letterSpacing:0.5,marginBottom:2}}>CARB TIER</div>
+          <span style={{background:carbColor+"22",color:carbColor,border:`1px solid ${carbColor}44`,
+            borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:"bold"}}>{day.carbTier}</span>
+        </div>
+      </div>
+      {day.zone2&&(
+        <div style={{background:C.tealLight,border:`1px solid ${C.teal}44`,borderRadius:8,
+          padding:"8px 14px",marginBottom:12,fontSize:11,color:C.teal2,fontWeight:"bold"}}>
+          📍 Zone 2 — 40–60 min | HR 120–140 bpm | Add electrolytes today
+        </div>
+      )}
+      {day.sections.map((sec,si)=>(
+        <div key={si} style={{marginBottom:14}}>
+          <div style={{background:sec.color,color:C.white,padding:"7px 14px",
+            borderRadius:"8px 8px 0 0",fontSize:11,fontWeight:"bold",letterSpacing:1}}>{sec.name}</div>
+          <div style={{background:C.white,borderRadius:"0 0 8px 8px",
+            boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:10}}>
+            {sec.exercises.map((ex,ei)=>(
+              <ExCard key={ei} ex={ex} dayIdx={dayIdx} secIdx={si} exIdx={ei} onStartRest={onStartRest}/>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <span style={{fontSize:12,fontWeight:"bold",color:C.navy}}>Session Notes</span>
+          <button onClick={()=>setShowNote(!showNote)} style={btn(showNote?C.gray:C.teal,C.white,true)}>
+            {showNote?"Hide":"Add Note"}
+          </button>
+        </div>
+        {showNote&&(
+          <textarea value={note} onChange={e=>saveNote(e.target.value)}
+            placeholder="PRs? Form notes? Pain? Energy?"
+            style={{...inp,resize:"vertical",minHeight:80}}/>
+        )}
+        {note&&!showNote&&(
+          <div style={{fontSize:12,color:C.navy,fontStyle:"italic",lineHeight:1.5}}>"{note}"</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── NUTRITION VIEW ─────────────────────────────────────────────────────
+function NutritionView(){
+  const[openMeal,setOpenMeal]=useState(null);
+  const[showSupp,setShowSupp]=useState(false);
+  const totalCal=MEALS.reduce((a,m)=>a+m.cal,0);
+  const totalP=MEALS.reduce((a,m)=>a+m.protein,0);
+  const totalC=MEALS.reduce((a,m)=>a+m.carbs,0);
+  const totalF=MEALS.reduce((a,m)=>a+m.fat,0);
+  const mealColors=[C.teal,C.navy,C.amber,C.teal2,C.navy2];
+  const carbColors={HIGH:C.green,MODERATE:C.amber,LOW:C.red};
+  return(
+    <div style={{paddingBottom:24}}>
+      <div style={{background:C.navy,borderRadius:10,padding:14,marginBottom:12}}>
+        <div style={{fontWeight:"bold",fontSize:13,color:C.tealLight,marginBottom:10}}>Daily Totals</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8}}>
+          {[["Cal",`~${totalCal}`,C.tealLight],["Protein",`${totalP}g`,C.teal],["Carbs",`${totalC}g`,C.amber],["Fat",`${totalF}g`,C.gray]].map(([label,val,col])=>(
+            <div key={label} style={{textAlign:"center"}}>
+              <div style={{fontSize:16,fontWeight:"bold",color:col}}>{val}</div>
+              <div style={{fontSize:10,color:"#ffffff88",marginTop:2}}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
+        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:10}}>Calorie Cycling</div>
+        {CALORIE_CYCLING.map((d,i)=>(
+          <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+            padding:"6px 0",borderBottom:i<CALORIE_CYCLING.length-1?`1px solid ${C.grayBorder}`:"none"}}>
+            <span style={{fontSize:12,fontWeight:"bold",color:C.navy}}>{d.day}</span>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:12,color:C.gray}}>{d.range} kcal</span>
+              <span style={{background:carbColors[d.tier]+"22",color:carbColors[d.tier],
+                border:`1px solid ${carbColors[d.tier]}44`,borderRadius:20,
+                padding:"1px 8px",fontSize:10,fontWeight:"bold"}}>{d.tier}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {MEALS.map((meal,mi)=>(
+        <div key={mi} style={{marginBottom:10,borderRadius:10,overflow:"hidden",
+          boxShadow:"0 1px 6px rgba(0,0,0,0.07)",
+          border:`1px solid ${openMeal===mi?mealColors[mi]:C.grayBorder}`}}>
+          <div onClick={()=>setOpenMeal(openMeal===mi?null:mi)}
+            style={{padding:"12px 14px",cursor:"pointer",
+              background:openMeal===mi?mealColors[mi]+"11":C.white,
+              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <div style={{fontWeight:"bold",fontSize:13,color:mealColors[mi]}}>{meal.name}</div>
+              <div style={{fontSize:11,color:C.gray,marginTop:2}}>{meal.time} · ~{meal.cal} kcal</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:10,color:C.gray,marginBottom:3}}>P {meal.protein}g · C {meal.carbs}g · F {meal.fat}g</div>
+              <span style={{fontSize:16,color:C.gray}}>{openMeal===mi?"▲":"▼"}</span>
+            </div>
+          </div>
+          {openMeal===mi&&(
+            <div style={{padding:"10px 14px",background:C.grayLight,borderTop:`1px solid ${C.grayBorder}`}}>
+              {meal.items.map((item,ii)=>(
+                <div key={ii} style={{marginBottom:ii<meal.items.length-1?12:0}}>
+                  <div style={{fontSize:11,fontWeight:"bold",color:mealColors[mi],marginBottom:5,letterSpacing:0.5}}>
+                    {item.section.toUpperCase()}
+                  </div>
+                  {item.foods.map((f,fi)=>(
+                    <div key={fi} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
+                      borderLeft:`2px solid ${mealColors[mi]}44`,marginBottom:2}}>{f}</div>
+                  ))}
+                </div>
+              ))}
+              <div style={{marginTop:10,padding:"8px 10px",background:mealColors[mi]+"11",
+                borderRadius:6,display:"flex",gap:16}}>
+                {[["Protein",meal.protein+"g"],["Carbs",meal.carbs+"g"],["Fat",meal.fat+"g"],["Cal","~"+meal.cal]].map(([l,v])=>(
+                  <div key={l} style={{textAlign:"center"}}>
+                    <div style={{fontSize:14,fontWeight:"bold",color:mealColors[mi]}}>{v}</div>
+                    <div style={{fontSize:10,color:C.gray}}>{l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:10}}>
+        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:8}}>Day Adjustments</div>
+        <div style={{marginBottom:10}}>
+          <div style={{fontSize:11,fontWeight:"bold",color:C.green,marginBottom:5}}>TRAINING DAYS — Add any one:</div>
+          {["1 extra cup rice","2 bananas","2 cups potatoes"].map((t,i)=>(
+            <div key={i} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
+              borderLeft:`2px solid ${C.green}44`,marginBottom:2}}>+ {t}</div>
+          ))}
+        </div>
+        <div>
+          <div style={{fontSize:11,fontWeight:"bold",color:C.amber,marginBottom:5}}>REST DAYS — Reduce:</div>
+          <div style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",borderLeft:`2px solid ${C.amber}44`}}>
+            −50–100g carbs from rice, oats, pasta, or potatoes. Keep protein consistent.
+          </div>
+        </div>
+      </div>
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:showSupp?10:0}}>
+          <span style={{fontWeight:"bold",color:C.navy,fontSize:13}}>Supplements</span>
+          <button onClick={()=>setShowSupp(!showSupp)} style={btn(showSupp?C.gray:C.teal,C.white,true)}>
+            {showSupp?"Hide":"Show"}
+          </button>
+        </div>
+        {showSupp&&(
+          <div>
+            <div style={{fontSize:11,fontWeight:"bold",color:C.teal,marginBottom:5}}>DAILY</div>
+            {SUPPLEMENTS.daily.map((s,i)=>(
+              <div key={i} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
+                borderLeft:`2px solid ${C.teal}44`,marginBottom:3}}>{s}</div>
+            ))}
+            <div style={{fontSize:11,fontWeight:"bold",color:C.amber,marginTop:10,marginBottom:5}}>RECOVERY SUPPORT</div>
+            {SUPPLEMENTS.recovery.map((s,i)=>(
+              <div key={i} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
+                borderLeft:`2px solid ${C.amber}44`,marginBottom:3}}>{s}</div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── HISTORY VIEW ───────────────────────────────────────────────────────
+function HistoryView(){
+  const hist=LS.get(histKey(),[]).slice().reverse();
+  const byDate={};
+  hist.forEach(h=>{if(!byDate[h.date])byDate[h.date]=[];byDate[h.date].push(h);});
+  const dates=Object.keys(byDate).sort().reverse().slice(0,14);
+  if(hist.length===0) return(
+    <div style={{textAlign:"center",color:C.gray,padding:40,fontStyle:"italic"}}>
+      No history yet. Check off sets during your sessions to build your log.
+    </div>
+  );
+  return(
+    <div style={{paddingBottom:24}}>
+      {dates.map(date=>(
+        <div key={date} style={{background:C.white,borderRadius:10,
+          boxShadow:"0 1px 6px rgba(0,0,0,0.07)",marginBottom:10,overflow:"hidden"}}>
+          <div style={{background:C.navy,color:C.white,padding:"8px 14px",fontSize:11,fontWeight:"bold"}}>{date}</div>
+          <div style={{padding:10}}>
+            {byDate[date].map((h,i)=>(
+              <div key={i} style={{display:"flex",justifyContent:"space-between",
+                padding:"4px 6px",borderBottom:i<byDate[date].length-1?`1px solid ${C.grayBorder}`:"none",
+                fontSize:12}}>
+                <span style={{color:C.navy}}>{h.exercise}</span>
+                <span style={{color:C.teal,fontWeight:"bold"}}>
+                  Set {h.set} — {h.weight?`${h.weight} lbs × `:""}{ h.reps} reps
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── OVERVIEW ───────────────────────────────────────────────────────────
+function OverviewView({onSelectDay}){
+  const carbColors={HIGH:C.green,MODERATE:C.amber,LOW:C.red};
+  const principles=[
+    {label:"Protein Daily",color:C.teal,note:"220–250g every day regardless of carb tier."},
+    {label:"Hydration",color:C.navy,note:"3–5 liters water daily. Add electrolytes on combat, dungeon, sauna, and outdoor days."},
+    {label:"Sleep",color:C.green,note:"7.5–9 hours. Non-negotiable for recovery and performance."},
+    {label:"Mobility Daily",color:C.teal2,note:"Day 7 restoration flow can be done every day for recovery and longevity."},
+    {label:"Creatine 5g",color:C.amber,note:"Daily. Plus magnesium glycinate, D3/K2, B12, vegan omega-3."},
+  ];
+  return(
+    <div style={{paddingBottom:24}}>
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
+        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:10}}>Weekly Split — Hybrid Warrior</div>
+        {PLAN.map((s,i)=>(
+          <div key={i} onClick={()=>onSelectDay(i)}
+            style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",
+              borderRadius:7,marginBottom:5,cursor:"pointer",
+              background:C.grayLight,border:`1px solid ${C.grayBorder}`}}>
+            <div style={{width:3,height:40,borderRadius:2,background:s.color,flexShrink:0}}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:"bold",fontSize:13,color:C.navy}}>{s.day}</div>
+              <div style={{fontSize:11,color:C.gray,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.label}</div>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontSize:10,color:C.gray,marginBottom:2}}>{s.calories}</div>
+              <span style={{background:carbColors[s.carbTier]+"22",color:carbColors[s.carbTier],
+                border:`1px solid ${carbColors[s.carbTier]}44`,borderRadius:20,
+                padding:"1px 7px",fontSize:10,fontWeight:"bold"}}>{s.carbTier}</span>
+            </div>
+            <span style={{fontSize:16,color:C.teal,marginLeft:4}}>›</span>
+          </div>
+        ))}
+      </div>
+      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
+        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:10}}>System Principles</div>
+        {principles.map((f,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,
+            padding:"6px 0",borderBottom:i<principles.length-1?`1px solid ${C.grayBorder}`:"none"}}>
+            <span style={{background:f.color+"22",color:f.color,border:`1px solid ${f.color}44`,
+              borderRadius:20,padding:"1px 8px",fontSize:10,fontWeight:"bold",flexShrink:0,marginTop:1}}>{f.label}</span>
+            <span style={{fontSize:11,color:C.gray}}>{f.note}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{background:C.tealLight,border:`1px solid ${C.teal}44`,borderRadius:10,padding:14}}>
+        <div style={{fontWeight:"bold",color:C.teal2,fontSize:12,marginBottom:8}}>Progression Rules</div>
+        <div style={{fontSize:11,color:C.navy,lineHeight:1.9}}>
+          <b>Strength:</b> All sets hit top rep range → Upper +5 lb | Lower +10 lb{"\n"}
+          <b>Hypertrophy:</b> Double progression — top rep range across all sets, then add load{"\n"}
+          <b>Calisthenics:</b> More reps → Harder variation → Slower tempo → Added weight{"\n"}
+          <b>Conditioning:</b> More rounds, density, speed, or reduced rest periods{"\n"}
+          <b>Tempo (3-1-1):</b> 3s eccentric · 1s pause · 1s concentric
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ────────────────────────────────────────────────────────────────
+function App(){
+  const[view,setView]=useState("overview");
+  const[dayIdx,setDayIdx]=useState(null);
+  const[restSec,setRestSec]=useState(0);
+  const[restActive,setRestActive]=useState(false);
+  const timerRef=useRef(null);
+
+  useEffect(()=>{
+    if(restActive&&restSec>0){
+      timerRef.current=setTimeout(()=>setRestSec(s=>s-1),1000);
+    } else if(restActive&&restSec===0){
+      playBeep();
+      setRestActive(false);
+    }
+    return()=>clearTimeout(timerRef.current);
+  },[restActive,restSec]);
+
+  const startRest=s=>{clearTimeout(timerRef.current);setRestSec(s);setRestActive(true);};
+  const skipRest=()=>{clearTimeout(timerRef.current);setRestSec(0);setRestActive(false);};
+  const toggleRest=()=>setRestActive(a=>!a);
+  const selectDay=i=>{setDayIdx(i);setView("day");};
+  const currentDay=PLAN[dayIdx]??null;
+  const timerRunning=restActive||restSec>0;
+
+  return(
+    <div style={{minHeight:"100vh",background:C.cream,fontFamily:"Georgia,serif"}}>
+      <div style={{background:C.navy,padding:"14px 18px",position:"sticky",top:0,zIndex:100,
+        boxShadow:"0 2px 12px rgba(0,0,0,0.25)"}}>
+        <div style={{color:C.white,fontWeight:"bold",fontSize:17}}>Anthony Anderson</div>
+        <div style={{color:C.tealLight,fontSize:11,marginTop:1}}>
+          {view==="day"&&currentDay?`${currentDay.day} — ${currentDay.label}`:"Hybrid Warrior System"}
+        </div>
+      </div>
+
+      {view==="day"&&(
+        <div style={{background:C.navy2,overflowX:"auto",display:"flex",gap:6,
+          padding:"8px 12px",WebkitOverflowScrolling:"touch"}}>
+          {PLAN.map((d,i)=>(
+            <button key={i} onClick={()=>setDayIdx(i)}
+              style={btn(i===dayIdx?C.teal:C.navy,C.white,true,false,{
+                flexShrink:0,whiteSpace:"nowrap",
+                border:`1px solid ${i===dayIdx?C.teal:C.grayBorder+"66"}`})}>
+              {d.day.slice(0,3)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{padding:12}}>
+        {view==="overview"&&<OverviewView onSelectDay={selectDay}/>}
+        {view==="day"&&dayIdx!==null&&<DayView key={`${dayIdx}-${today()}`} dayIdx={dayIdx} onStartRest={startRest}/>}
+        {view==="nutrition"&&<NutritionView/>}
+        {view==="history"&&<HistoryView/>}
+      </div>
+
+      {timerRunning
+        ?<RestBar seconds={restSec} active={restActive} onStart={startRest} onSkip={skipRest} onToggle={toggleRest}/>
+        :view==="day"&&<RestPresets onStart={startRest}/>
+      }
+
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.white,
+        borderTop:`1px solid ${C.grayBorder}`,display:"flex",zIndex:100}}>
+        {[
+          {id:"overview",label:"📋 Schedule"},
+          {id:"day",label:"🏋️ Session"},
+          {id:"nutrition",label:"🥗 Nutrition"},
+          {id:"history",label:"📈 History"},
+        ].map(t=>(
+          <button key={t.id} onClick={()=>{
+            setView(t.id);
+            if(t.id==="day"&&dayIdx===null)setDayIdx(0);
+          }} style={{flex:1,padding:"12px 0",border:"none",
+            borderTop:`3px solid ${view===t.id?C.teal:"transparent"}`,
+            background:C.white,fontFamily:"Georgia,serif",fontSize:10,
+            fontWeight:view===t.id?"bold":"normal",
+            color:view===t.id?C.teal:C.gray,cursor:"pointer"}}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div style={{height:60}}/>
+    </div>
+  );
+}
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
