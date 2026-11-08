@@ -153,6 +153,15 @@ input,textarea{outline:none}
 .swap-row:last-child{border-bottom:0;padding-bottom:0}
 .swap-row b{font-weight:600}
 .swap-row span{color:var(--muted)}
+.swapped{display:block;margin-top:4px;font-size:12px;font-weight:600;color:var(--warn);letter-spacing:.02em}
+.swap.used{background:color-mix(in srgb,var(--warn) 16%,transparent);border-color:color-mix(in srgb,var(--warn) 55%,var(--line2));color:var(--warn)}
+.swap-row.opt{display:block;position:relative;width:100%;text-align:left;color:var(--text);padding:12px 82px 12px 12px;margin-top:6px;min-height:48px;
+  border:1px solid color-mix(in srgb,var(--warn) 30%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--surface) 70%,transparent);border-bottom:1px solid color-mix(in srgb,var(--warn) 30%,var(--line))}
+.swap-row.opt:last-child{padding-bottom:12px}
+.swap-row.opt i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--warn)}
+.swap-row.opt.sel{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,var(--surface))}
+.swap-note{margin-bottom:8px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--warn) 10%,transparent);border:1px solid color-mix(in srgb,var(--warn) 30%,var(--line));color:var(--text)}
+.swap-note b{color:var(--warn)}
 .ex-body{padding:4px 15px 15px;border-top:1px solid var(--line);background:var(--surface2)}
 .cue{color:var(--muted);font-size:14px;line-height:1.55;padding:13px 0 15px;white-space:pre-line}
 .set{display:grid;grid-template-columns:50px 1fr 1fr 50px;gap:9px;align-items:center;margin-bottom:9px}
@@ -639,14 +648,14 @@ function RestDock({rest}){
 }
 
 /* ── SET ROW ───────────────────────────────────────────── */
-function SetRow({dayIdx,secIdx,exIdx,setNum,defaultReps,restSeconds,onStartRest}){
+function SetRow({dayIdx,secIdx,exIdx,setNum,defaultReps,restSeconds,onStartRest,nameOverride}){
   const bump=useContext(Tick);
   const k=setKey(dayIdx,secIdx,exIdx,setNum);
   const saved=LS.get(k,{weight:"",reps:"",done:false});
   const[weight,setWeight]=useState(saved.weight);
   const[reps,setReps]=useState(saved.reps||defaultReps);
   const[done,setDone]=useState(saved.done);
-  const exName=PLAN[dayIdx].sections[secIdx].exercises[exIdx].name;
+  const exName=nameOverride||PLAN[dayIdx].sections[secIdx].exercises[exIdx].name;
   const hid=`${dayIdx}_${secIdx}_${exIdx}_${setNum}`;
 
   /* history stays in sync: un-checking removes the entry, editing a checked set updates it (no duplicates) */
@@ -685,7 +694,13 @@ function SetRow({dayIdx,secIdx,exIdx,setNum,defaultReps,restSeconds,onStartRest}
 function ExCard({ex,dayIdx,secIdx,exIdx,onStartRest}){
   const[open,setOpen]=useState(false);
   const[showSwaps,setShowSwaps]=useState(false);
+  const swapK=`hw_swap_${dayIdx}_${secIdx}_${exIdx}_${today()}`;
+  const[swapIdx,setSwapIdx]=useState(()=>LS.get(swapK,null));
   const done=exDone(dayIdx,secIdx,exIdx);
+  const splitSwap=(s)=>{const c=s.indexOf(" — ");return c>0?[s.slice(0,c),s.slice(c+3)]:[s,""];};
+  const swapped=swapIdx!==null&&ex.swaps&&ex.swaps[swapIdx]!==undefined;
+  const[curName,curNote]=swapped?splitSwap(ex.swaps[swapIdx]):[ex.name,""];
+  const pickSwap=(i)=>{setSwapIdx(i);LS.set(swapK,i);setShowSwaps(false);setOpen(true);};
   const hasSwaps=ex.swaps&&ex.swaps.length>0;
   const sets=Array.from({length:ex.sets},(_,i)=>i+1);
   return(
@@ -694,7 +709,8 @@ function ExCard({ex,dayIdx,secIdx,exIdx,onStartRest}){
         <button className="ex-toggle" aria-expanded={open} onClick={()=>setOpen(!open)}>
           <span className="ex-idx">{done?<Check/>:exIdx+1}</span>
           <span className="ex-text">
-            <span className="ex-name">{ex.name}</span>
+            <span className="ex-name">{curName}</span>
+            {swapped&&<span className="swapped">Swapped in for {ex.name}</span>}
             <span className="ex-meta">
               <span className="meta">{ex.sets} × {ex.reps}</span>
               {ex.tempo?<span className="meta">Tempo {ex.tempo}</span>:null}
@@ -704,28 +720,36 @@ function ExCard({ex,dayIdx,secIdx,exIdx,onStartRest}){
           <Chev open={open}/>
         </button>
         {hasSwaps&&(
-          <button className={"swap"+(showSwaps?" on":"")} aria-expanded={showSwaps} onClick={()=>setShowSwaps(!showSwaps)}>
-            {showSwaps?"Close":"Swap"}
+          <button className={"swap"+(showSwaps?" on":swapped?" used":"")} aria-expanded={showSwaps} onClick={()=>setShowSwaps(!showSwaps)}>
+            {showSwaps?"Close":swapped?"Swapped":"Swap"}
           </button>
         )}
       </div>
       {showSwaps&&(
         <div className="swaps">
           <span className="label">Exercise Swaps</span>
+          {swapped&&(
+            <button className="swap-row opt" onClick={()=>pickSwap(null)}>
+              <b>Use original — {ex.name}</b>
+            </button>
+          )}
           {ex.swaps.map((s,i)=>{
-            const cut=s.indexOf(" — ");
-            return cut>0
-              ?<div className="swap-row" key={i}><b>{s.slice(0,cut)}</b> <span>— {s.slice(cut+3)}</span></div>
-              :<div className="swap-row" key={i}>{s}</div>;
+            const [n,d]=splitSwap(s);
+            return(
+              <button className={"swap-row opt"+(swapIdx===i?" sel":"")} key={i} onClick={()=>pickSwap(i)}>
+                <b>{n}</b>{d?<span> — {d}</span>:null}
+                <i>{swapIdx===i?"In use":"Use this"}</i>
+              </button>
+            );
           })}
         </div>
       )}
       {open&&(
         <div className="ex-body">
-          <div className="cue">{ex.cue}</div>
+          <div className="cue">{swapped&&curNote?<div className="swap-note"><b>{curName}:</b> {curNote}</div>:null}{ex.cue}</div>
           {sets.map(s=>(
             <SetRow key={s} dayIdx={dayIdx} secIdx={secIdx} exIdx={exIdx} setNum={s}
-              defaultReps={ex.reps} restSeconds={ex.rest||0} onStartRest={onStartRest}/>
+              defaultReps={ex.reps} restSeconds={ex.rest||0} onStartRest={onStartRest} nameOverride={swapped?curName:undefined}/>
           ))}
         </div>
       )}
