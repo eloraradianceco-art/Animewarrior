@@ -2,31 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="color-scheme" content="dark light"/>
+<meta name="theme-color" content="#080A0D" media="(prefers-color-scheme: dark)"/>
+<meta name="theme-color" content="#F4F1EA" media="(prefers-color-scheme: light)"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Hybrid Warrior"/>
+<meta name="description" content="Hybrid Warrior System — training tracker, rest timer, exercise swaps and nutrition plan."/>
 <title>Hybrid Warrior — Anthony Anderson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#F7F6F1;font-family:Georgia,serif}
-input,textarea,button{font-family:Georgia,serif}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:#2A8C8C44;border-radius:2px}
+/* ── THEME ─────────────────────────────────────────────── */
+:root{
+  --bg:#080A0D; --surface:#11151A; --surface2:#171C23; --line:#222A33; --line2:#313B47;
+  --text:#F2F4F7; --muted:#A3AEBA; --faint:#6F7A87;
+  --accent:#FF6A2B; --accent2:#FFA24A; --accent-ink:#1A0A02;
+  --good:#3DD68C; --warn:#F5B93A; --cool:#5BA8FF; --ok-ink:#04130A;
+  --c-navy:#7C93FF; --c-navy2:#B794F6; --c-teal:#38BDF8; --c-teal2:#2DD4BF;
+  --c-amber:#F5B93A; --c-green:#3DD68C; --c-red:#FF6B6B; --c-gray:#A3AEBA;
+  --hl:rgba(255,255,255,.055); --shadow:0 14px 30px -16px rgba(0,0,0,.75); --glow:rgba(255,106,43,.22);
+  --nav-h:72px; --nav-gap:16px; --dock-h:70px; --rail:min(calc(100% - 24px),520px);
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#F4F1EA; --surface:#FFFFFF; --surface2:#F7F4EE; --line:#E6E1D5; --line2:#D2CCBC;
+    --text:#14181D; --muted:#505A65; --faint:#85909B;
+    --accent:#E24A12; --accent2:#F28A2E; --accent-ink:#FFFFFF;
+    --good:#12804A; --warn:#9A5F04; --cool:#1F6FD1; --ok-ink:#FFFFFF;
+    --c-navy:#4A5FD6; --c-navy2:#7A55D1; --c-teal:#0A86B8; --c-teal2:#0E8F83;
+    --c-amber:#9A5F04; --c-green:#12804A; --c-red:#C93434; --c-gray:#505A65;
+    --hl:rgba(255,255,255,.9); --shadow:0 14px 28px -18px rgba(40,30,10,.35); --glow:rgba(226,74,18,.16);
+  }
+}
+
+/* ── BASE ──────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{background:radial-gradient(120% 60% at 50% -10%,var(--glow),transparent 62%) no-repeat,var(--bg);background-attachment:fixed;
+  color:var(--text);font-family:var(--body);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+input,textarea{outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.boot{display:grid;place-items:center;min-height:100vh;font-family:var(--display);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+/* ── TOP BAR ───────────────────────────────────────────── */
+.top{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 96%,transparent),color-mix(in srgb,var(--bg) 82%,transparent));
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 14px) 18px 14px}
+.top-in{max-width:720px;margin:0 auto}
+.eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+.eyebrow::before{content:"";width:18px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.title{font-family:var(--display);font-weight:700;font-size:31px;line-height:1;letter-spacing:.02em;text-transform:uppercase;margin-top:7px}
+.sub{color:var(--muted);font-size:13.5px;margin-top:5px;letter-spacing:.01em}
+.pills{display:flex;gap:7px;overflow-x:auto;padding-top:14px;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.pill{position:relative;flex:1 0 auto;min-width:52px;height:40px;padding:0 13px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);
+  font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);transition:background .2s,color .2s}
+.pill[aria-current="true"]{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:var(--accent-ink);box-shadow:0 8px 18px -8px var(--accent)}
+.pill.today::after{content:"";position:absolute;top:6px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.pill.today[aria-current="true"]::after{background:var(--accent-ink)}
+
+/* ── LAYOUT ────────────────────────────────────────────── */
+.main{max-width:720px;margin:0 auto;padding:18px 16px calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 40px)}
+.main.has-dock{padding-bottom:calc(var(--nav-h) + var(--nav-gap) + var(--dock-h) + env(safe-area-inset-bottom) + 52px)}
+.card{background:linear-gradient(180deg,var(--surface),color-mix(in srgb,var(--surface) 94%,var(--bg)));border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px;
+  box-shadow:inset 0 1px 0 var(--hl),var(--shadow)}
+.h2{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.06em;text-transform:uppercase}
+.h3{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase}
+.label{font-family:var(--display);font-weight:600;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.muted{color:var(--muted)}
+.chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;white-space:nowrap;
+  font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tone);background:color-mix(in srgb,var(--tone) 13%,transparent);border:1px solid color-mix(in srgb,var(--tone) 38%,transparent)}
+.btn{height:46px;padding:0 20px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);
+  font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 10px 20px -10px var(--accent)}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line2);box-shadow:none}
+.btn.sm{height:38px;padding:0 15px;font-size:13px}
+.empty{text-align:center;color:var(--muted);padding:56px 24px;font-style:italic}
+
+/* ── SCHEDULE ──────────────────────────────────────────── */
+.row{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 0;border-bottom:1px solid var(--line);min-height:72px;color:var(--text)}
+.row:last-child{border-bottom:0;padding-bottom:2px}
+.rail{flex:0 0 4px;align-self:stretch;border-radius:2px;background:var(--tone);box-shadow:0 0 12px -2px var(--tone)}
+.row-main{flex:1;min-width:0}
+.row-day{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:23px;line-height:1;letter-spacing:.05em;text-transform:uppercase}
+.row-lab{color:var(--muted);font-size:13.5px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-end{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:0 0 auto;max-width:132px}
+.kcal{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;line-height:1.25}
+.today-tag{display:inline-block;vertical-align:1px;margin-right:7px;font-family:var(--display);font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-ink);background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:999px;padding:0 8px;line-height:17px}
+.princ{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:start}
+.princ:last-child{border-bottom:0;padding-bottom:0}
+.princ .k{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:var(--tone)}
+.princ .v{color:var(--muted);font-size:14px;line-height:1.45}
+.prog-card .princ{grid-template-columns:136px 1fr}
+.princ .k{overflow-wrap:anywhere}
+.prog-card{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 11%,var(--surface)),var(--surface) 70%)}
+
+/* ── SESSION ───────────────────────────────────────────── */
+.hero-prog{display:flex;align-items:center;gap:18px;border-color:color-mix(in srgb,var(--accent) 30%,var(--line));
+  background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 9%,var(--surface)),var(--surface) 65%)}
+.ring{position:relative;flex:0 0 78px;width:78px;height:78px}
+.ring svg{width:78px;height:78px;transform:rotate(-90deg)}
+.ring .trk{stroke:var(--line2);opacity:.6}
+.ring .bar{stroke:url(#rg);transition:stroke-dashoffset .5s cubic-bezier(.2,.8,.2,1)}
+.ring.full .bar{stroke:var(--good)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+.hp-text{display:flex;flex-direction:column;gap:5px;min-width:0}
+.prog-n{font-family:var(--display);font-weight:700;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.complete{font-family:var(--display);font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--good);font-size:14px}
+.tiles{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:14px}
+.tile{background:linear-gradient(180deg,var(--surface),color-mix(in srgb,var(--surface) 94%,var(--bg)));border:1px solid var(--line);border-radius:18px;padding:15px 16px;
+  display:flex;flex-direction:column;gap:9px;align-items:flex-start;box-shadow:inset 0 1px 0 var(--hl),var(--shadow)}
+.big{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.banner{display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--c-teal2) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--c-teal2) 40%,var(--line));
+  color:var(--c-teal2);border-radius:16px;padding:12px 15px;margin-bottom:14px;font-weight:600;font-size:13px}
+.sec-h{display:flex;align-items:center;gap:11px;margin:28px 2px 12px}
+.sec-h .bar{width:4px;height:18px;border-radius:2px;background:var(--tone);box-shadow:0 0 12px -1px var(--tone)}
+.sec-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+.ex{background:linear-gradient(180deg,var(--surface),color-mix(in srgb,var(--surface) 94%,var(--bg)));border:1px solid var(--line);border-radius:18px;margin-bottom:10px;overflow:hidden;
+  box-shadow:inset 0 1px 0 var(--hl),var(--shadow)}
+.ex.done{border-color:color-mix(in srgb,var(--good) 55%,var(--line))}
+.ex-head{display:flex;align-items:stretch}
+.ex-toggle{flex:1;min-width:0;display:flex;align-items:center;gap:13px;text-align:left;padding:15px;min-height:72px}
+.ex-idx{flex:0 0 32px;height:32px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);display:grid;place-items:center;
+  font-family:var(--display);font-weight:700;font-size:16px}
+.ex.done .ex-idx{background:var(--good);border-color:var(--good);color:var(--ok-ink)}
+.ex-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.ex-name{font-weight:600;font-size:16.5px;line-height:1.2;letter-spacing:.005em}
+.ex.done .ex-name{color:var(--good)}
+.ex-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.meta{font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.chev{display:inline-grid;color:var(--faint);transition:transform .2s}
+.chev.open{transform:rotate(180deg)}
+.swap{flex:0 0 auto;align-self:center;margin-right:12px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);
+  font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.swap.on{background:var(--warn);border-color:var(--warn);color:#160F00}
+.swaps{padding:13px 15px 15px;background:color-mix(in srgb,var(--warn) 9%,var(--surface));border-top:1px solid color-mix(in srgb,var(--warn) 35%,var(--line))}
+.swaps .label{color:var(--warn);display:block;margin-bottom:8px}
+.swap-row{padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--warn) 22%,var(--line));font-size:14px;line-height:1.4}
+.swap-row:last-child{border-bottom:0;padding-bottom:0}
+.swap-row b{font-weight:600}
+.swap-row span{color:var(--muted)}
+.ex-body{padding:4px 15px 15px;border-top:1px solid var(--line);background:var(--surface2)}
+.cue{color:var(--muted);font-size:14px;line-height:1.55;padding:13px 0 15px;white-space:pre-line}
+.set{display:grid;grid-template-columns:50px 1fr 1fr 50px;gap:9px;align-items:center;margin-bottom:9px}
+.set-n{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.07em;color:var(--muted);text-transform:uppercase}
+.fw{position:relative;display:block}
+.field{width:100%;height:50px;border-radius:14px;background:var(--surface);border:1px solid var(--line2);
+  text-align:center;font-size:17px;font-weight:600;padding:0 36px 0 10px;font-variant-numeric:tabular-nums}
+.field::placeholder{color:var(--faint);font-weight:400}
+.field:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+.fw em{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;font-style:normal;font-size:11px;color:var(--faint);
+  font-family:var(--display);font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.check{width:50px;height:50px;border-radius:14px;border:2px solid var(--line2);display:grid;place-items:center;color:transparent;background:var(--surface)}
+.check[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:var(--ok-ink);box-shadow:0 8px 18px -8px var(--good)}
+.set.done .field{border-color:color-mix(in srgb,var(--good) 55%,var(--line2))}
+.textarea{width:100%;min-height:100px;resize:vertical;border-radius:14px;background:var(--surface2);border:1px solid var(--line2);padding:13px;font-size:16px;line-height:1.45}
+.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+.note-prev{color:var(--muted);font-style:italic;line-height:1.5}
+
+/* ── NUTRITION ─────────────────────────────────────────── */
+.hero{background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 17%,var(--surface)),var(--surface) 72%);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));
+  border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:inset 0 1px 0 var(--hl),var(--shadow)}
+.macros{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:13px}
+.macro{text-align:center;background:color-mix(in srgb,var(--bg) 55%,transparent);border:1px solid var(--line);border-radius:14px;padding:11px 4px}
+.macro b{display:block;font-family:var(--display);font-weight:700;font-size:24px;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--tone,var(--text))}
+.macro span{font-size:11px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase}
+.cyc{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.cyc:last-child{border-bottom:0;padding-bottom:0}
+.cyc .d{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:.06em;text-transform:uppercase}
+.cyc .d.now{color:var(--accent)}
+.cyc .r{display:flex;align-items:center;gap:8px}
+.cyc .kcal{white-space:nowrap}
+.meal{background:linear-gradient(180deg,var(--surface),color-mix(in srgb,var(--surface) 94%,var(--bg)));border:1px solid var(--line);border-radius:20px;margin-bottom:12px;overflow:hidden;
+  border-left:4px solid var(--tone);box-shadow:inset 0 1px 0 var(--hl),var(--shadow)}
+.meal-head{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:16px;color:var(--text)}
+.meal-t{flex:1;min-width:0}
+.meal-n{font-weight:600;font-size:16.5px;line-height:1.2}
+.meal-s{color:var(--muted);font-size:13px;margin-top:4px;font-variant-numeric:tabular-nums}
+.meal-m{font-size:12px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+.meal-body{padding:2px 16px 16px;border-top:1px solid var(--line);background:var(--surface2)}
+.meal-sec{margin-top:15px}
+.meal-sec .label{color:var(--tone);display:block;margin-bottom:7px}
+.food{padding:6px 0 6px 13px;border-left:2px solid color-mix(in srgb,var(--tone) 45%,transparent);margin-bottom:3px;font-size:14.5px}
+.list-h{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;margin:12px 0 7px}
+.list-h:first-of-type{margin-top:0}
+.li{padding:6px 0 6px 13px;border-left:2px solid color-mix(in srgb,var(--tone) 45%,transparent);margin-bottom:3px;font-size:14.5px}
+
+/* ── HISTORY ───────────────────────────────────────────── */
+.hday{padding:0;overflow:hidden}
+.hday-h{padding:11px 18px;background:var(--surface2);border-bottom:1px solid var(--line);font-family:var(--display);font-weight:700;letter-spacing:.16em;font-size:14px}
+.hrow{display:flex;justify-content:space-between;gap:12px;padding:11px 18px;border-bottom:1px solid var(--line);font-size:14px}
+.hrow:last-child{border-bottom:0}
+.hrow b{font-weight:600;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* ── REST DOCK (floating, sits above nav) ─────────────── */
+.dock{position:fixed;left:50%;transform:translateX(-50%);width:var(--rail);z-index:60;height:var(--dock-h);
+  bottom:calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 10px);
+  background:color-mix(in srgb,var(--surface2) 90%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);
+  border:1px solid var(--line2);border-radius:22px;padding:0 12px;display:flex;align-items:center;overflow:hidden;
+  box-shadow:inset 0 1px 0 var(--hl),0 18px 34px -14px rgba(0,0,0,.65)}
+.dock-in{width:100%;display:flex;align-items:center;gap:8px}
+.dock .pre{flex:1;height:48px;border-radius:14px;background:var(--surface);border:1px solid var(--line2);
+  font-family:var(--display);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.dock .pre:active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);border-color:transparent}
+.dock .label{flex:0 0 auto;margin-right:2px}
+.t-bar{position:absolute;left:0;right:0;top:0;height:3px;background:var(--line)}
+.t-bar i{display:block;height:100%;transition:width .25s linear}
+.t-time{flex:1;font-family:var(--display);font-weight:700;font-size:42px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+
+/* ── NAV (floating glass bar) ──────────────────────────── */
+.nav{position:fixed;left:50%;transform:translateX(-50%);width:var(--rail);bottom:calc(var(--nav-gap) + env(safe-area-inset-bottom));z-index:70;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;height:var(--nav-h);
+  background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);
+  border:1px solid var(--line2);border-radius:26px;box-shadow:inset 0 1px 0 var(--hl),0 22px 40px -14px rgba(0,0,0,.7)}
+.nav button{position:relative;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted);
+  font-family:var(--display);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;transition:background .2s,color .2s;padding:0 2px}
+.nav button svg{width:25px;height:25px}
+.nav button[aria-current="page"]{color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
+
+@media (min-width:640px){
+  .main{padding-top:24px}
+  .title{font-size:38px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div class="boot">Hybrid Warrior</div></div>
 <script type="text/babel">
-const{useState,useEffect,useRef}=React;
+const{useState,useEffect,useRef,useContext,createContext}=React;
 
-const C={
-  navy:"#1C2B39",navy2:"#243447",teal:"#2A8C8C",teal2:"#1E6E6E",
-  tealLight:"#E8F4F4",cream:"#F7F6F1",white:"#FFFFFF",
-  gray:"#6B7280",grayLight:"#F3F4F6",grayBorder:"#E5E7EB",
-  red:"#C0392B",green:"#1E7A4A",greenLight:"#F0FDF4",
-  amber:"#D97706",amberLight:"#FFFBEB",
-};
+/* Legacy color keys referenced by the data blocks below — values now point at theme tokens */
+const C={navy:"var(--c-navy)",navy2:"var(--c-navy2)",teal:"var(--c-teal)",teal2:"var(--c-teal2)",
+  amber:"var(--c-amber)",green:"var(--c-green)",red:"var(--c-red)",gray:"var(--c-gray)"};
 
 const LS={
   get:(k,d=null)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch{return d;}},
@@ -281,166 +501,231 @@ const SUPPLEMENTS={
   recovery:["Tart cherry","Turmeric / curcumin","Ginger","Probiotic"],
 };
 
-const today=()=>new Date().toISOString().slice(0,10);
+
+/* ── HELPERS ───────────────────────────────────────────── */
+/* Local calendar date (the old UTC date rolled over at ~6pm Central, splitting evening sessions) */
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
 const setKey=(di,si,ei,s)=>`hw_set_${di}_${si}_${ei}_${s}_${today()}`;
 const noteKey=(di)=>`hw_note_${di}_${today()}`;
 const histKey=()=>`hw_hist`;
 const fmt=(s)=>`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+const TODAY_IDX=(new Date().getDay()+6)%7; /* Mon=0 … Sun=6 */
 
-const playBeep=()=>{
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [[0,880],[0.18,880],[0.36,1200]].forEach(([t,freq])=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);
-      o.frequency.value=freq;
-      g.gain.setValueAtTime(0.35,ctx.currentTime+t);
-      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.18);
-      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.2);
-    });
-  }catch(e){}
+/* Sections where you pick ONE option — any completed option satisfies the whole group */
+const CHOOSE_ONE=[{day:0,secs:[1]},{day:2,secs:[0]},{day:5,secs:[0,1,2]}];
+
+const exDone=(di,si,ei)=>{
+  const ex=PLAN[di].sections[si].exercises[ei];
+  return Array.from({length:ex.sets},(_,i)=>i+1).every(s=>LS.get(setKey(di,si,ei,s),{done:false}).done);
+};
+const dayUnits=(di)=>{
+  const day=PLAN[di];
+  const rules=CHOOSE_ONE.filter(r=>r.day===di);
+  const picked=(si)=>rules.some(r=>r.secs.includes(si));
+  let total=0,done=0;
+  day.sections.forEach((sec,si)=>{
+    if(picked(si))return;
+    sec.exercises.forEach((_,ei)=>{total++;if(exDone(di,si,ei))done++;});
+  });
+  rules.forEach(r=>{
+    total++;
+    const ok=r.secs.some(si=>day.sections[si].exercises.some((_,ei)=>exDone(di,si,ei)));
+    if(ok)done++;
+  });
+  return{total,done};
 };
 
-const btn=(bg,fg=C.white,sm=false,full=false,extra={})=>({
-  background:bg,color:fg,border:"none",borderRadius:7,
-  padding:sm?"4px 11px":"10px 20px",fontFamily:"Georgia,serif",
-  fontSize:sm?11:13,fontWeight:"bold",cursor:"pointer",
-  width:full?"100%":"auto",...extra,
-});
-const inp={width:"100%",border:`1.5px solid ${C.grayBorder}`,borderRadius:7,
-  padding:"7px 10px",fontSize:13,fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"};
+const tierTone=t=>t==="HIGH"?"var(--good)":t==="MODERATE"?"var(--warn)":"var(--cool)";
+const Tick=createContext(()=>{});
 
-// ── REST BAR ──────────────────────────────────────────────────────────
-function RestBar({seconds,active,onStart,onSkip,onToggle}){
-  const urgentColor=seconds<=10?C.red:seconds<=30?C.amber:C.teal;
-  if(!active&&seconds===0) return null;
-  return(
-    <div style={{position:"fixed",bottom:60,left:0,right:0,background:C.navy,
-      padding:"10px 16px",display:"flex",alignItems:"center",gap:12,
-      boxShadow:"0 -2px 10px rgba(0,0,0,0.35)",zIndex:99}}>
-      <div style={{flex:1}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-          <span style={{fontSize:10,color:C.tealLight,fontWeight:"bold",letterSpacing:1}}>REST TIMER</span>
-          <span style={{fontSize:22,fontWeight:"bold",color:urgentColor,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{fmt(seconds)}</span>
-        </div>
-        <div style={{background:C.navy2,borderRadius:4,height:5}}>
-          <div style={{background:urgentColor,width:`${Math.min((seconds/180)*100,100)}%`,
-            height:5,borderRadius:4,transition:"width 1s linear"}}/>
+/* ── ICONS ─────────────────────────────────────────────── */
+const Svg=({children,size=22,sw=1.8})=>(
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw}
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
+);
+const Check=()=><Svg size={20} sw={2.8}><path d="M5 12.5l4.5 4.5L19 7.5"/></Svg>;
+const Chev=({open})=><span className={"chev"+(open?" open":"")}><Svg size={20}><path d="M6 9l6 6 6-6"/></Svg></span>;
+const NAV_ICONS={
+  overview:<Svg><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></Svg>,
+  day:<Svg><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></Svg>,
+  nutrition:<Svg><path d="M12 8c-2.2-2.2-6.5-1.2-6.5 4 0 4.8 3 8.5 6.5 8.5s6.5-3.7 6.5-8.5c0-5.2-4.3-6.2-6.5-4z"/><path d="M12 8c0-2.2 1-3.7 3-4.5"/></Svg>,
+  history:<Svg><path d="M5 20v-6M12 20V5M19 20v-9"/></Svg>,
+};
+
+/* ── REST TIMER (timestamp-based: survives screen lock / tab throttling) ── */
+function useRest(){
+  const[st,setSt]=useState({total:0,left:0,active:false});
+  const endRef=useRef(0);
+  const audioRef=useRef(null);
+  const lockRef=useRef(null);
+
+  const ensureAudio=()=>{ /* must be created inside a tap so iOS allows sound later */
+    try{
+      const A=window.AudioContext||window.webkitAudioContext;
+      if(!A)return;
+      if(!audioRef.current)audioRef.current=new A();
+      if(audioRef.current.state==="suspended")audioRef.current.resume();
+    }catch(e){}
+  };
+  const beep=()=>{
+    try{
+      const ctx=audioRef.current;
+      if(ctx){
+        [[0,880],[0.18,880],[0.36,1200]].forEach(([t,f])=>{
+          const o=ctx.createOscillator(),g=ctx.createGain();
+          o.connect(g);g.connect(ctx.destination);o.frequency.value=f;
+          g.gain.setValueAtTime(0.35,ctx.currentTime+t);
+          g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.18);
+          o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.2);
+        });
+      }
+    }catch(e){}
+    try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
+  };
+  const takeLock=async()=>{try{if(navigator.wakeLock&&!lockRef.current)lockRef.current=await navigator.wakeLock.request("screen");}catch(e){}};
+  const dropLock=()=>{try{if(lockRef.current)lockRef.current.release();}catch(e){}lockRef.current=null;};
+
+  const start=(s)=>{ensureAudio();endRef.current=Date.now()+s*1000;setSt({total:s,left:s,active:true});takeLock();};
+  const skip=()=>{setSt({total:0,left:0,active:false});dropLock();};
+  const toggle=()=>{
+    if(st.active){
+      const left=Math.max(0,Math.ceil((endRef.current-Date.now())/1000));
+      setSt(x=>({...x,active:false,left}));dropLock();
+    }else if(st.left>0){
+      ensureAudio();endRef.current=Date.now()+st.left*1000;setSt(x=>({...x,active:true}));takeLock();
+    }
+  };
+
+  useEffect(()=>{
+    if(!st.active)return;
+    const id=setInterval(()=>{
+      const left=Math.max(0,Math.ceil((endRef.current-Date.now())/1000));
+      if(left<=0){clearInterval(id);beep();dropLock();setSt({total:0,left:0,active:false});}
+      else setSt(x=>x.left===left?x:{...x,left});
+    },250);
+    return()=>clearInterval(id);
+  },[st.active]);
+  useEffect(()=>()=>dropLock(),[]);
+
+  return{left:st.left,total:st.total,active:st.active,running:st.active||st.left>0,start,skip,toggle};
+}
+
+function RestDock({rest}){
+  if(rest.running){
+    const pct=rest.total?Math.min(100,(rest.left/rest.total)*100):0;
+    const tone=rest.left<=10?"var(--c-red)":rest.left<=30?"var(--warn)":"var(--accent)";
+    return(
+      <div className="dock" role="timer" aria-label="Rest timer">
+        <div className="t-bar"><i style={{width:pct+"%",background:tone}}/></div>
+        <div className="dock-in">
+          <span className="label">Rest</span>
+          <span className="t-time" style={{color:tone}}>{fmt(rest.left)}</span>
+          <button className="btn" onClick={rest.toggle}>{rest.active?"Pause":"Go"}</button>
+          <button className="btn ghost" onClick={rest.skip}>Skip</button>
         </div>
       </div>
-      <button onClick={onToggle} style={btn(active?C.amber:C.green,C.white,true)}>{active?"Pause":"Go"}</button>
-      <button onClick={onSkip} style={btn(C.gray,C.white,true)}>Skip</button>
-    </div>
-  );
-}
-
-// ── REST PRESETS ───────────────────────────────────────────────────────
-function RestPresets({onStart}){
+    );
+  }
   return(
-    <div style={{position:"fixed",bottom:60,left:0,right:0,background:C.navy2,
-      padding:"7px 12px",display:"flex",alignItems:"center",gap:6,
-      boxShadow:"0 -2px 8px rgba(0,0,0,0.2)",zIndex:99,overflowX:"auto"}}>
-      <span style={{fontSize:10,color:C.tealLight,fontWeight:"bold",flexShrink:0}}>REST:</span>
-      {[[60,"1:00"],[90,"1:30"],[120,"2:00"],[150,"2:30"],[180,"3:00"]].map(([s,label])=>(
-        <button key={s} onClick={()=>onStart(s)}
-          style={btn(C.teal,C.white,true,false,{flexShrink:0,fontSize:10,padding:"4px 10px"})}>
-          {label}
-        </button>
-      ))}
+    <div className="dock">
+      <div className="dock-in">
+        <span className="label">Rest</span>
+        {[[60,"1:00"],[90,"1:30"],[120,"2:00"],[150,"2:30"],[180,"3:00"]].map(([s,l])=>(
+          <button key={s} className="pre" onClick={()=>rest.start(s)}>{l}</button>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ── SET ROW ────────────────────────────────────────────────────────────
+/* ── SET ROW ───────────────────────────────────────────── */
 function SetRow({dayIdx,secIdx,exIdx,setNum,defaultReps,restSeconds,onStartRest}){
+  const bump=useContext(Tick);
   const k=setKey(dayIdx,secIdx,exIdx,setNum);
   const saved=LS.get(k,{weight:"",reps:"",done:false});
   const[weight,setWeight]=useState(saved.weight);
   const[reps,setReps]=useState(saved.reps||defaultReps);
   const[done,setDone]=useState(saved.done);
-  const save=(w,r,d)=>LS.set(k,{weight:w,reps:r,done:d});
-  const toggleDone=()=>{
-    const nd=!done;setDone(nd);save(weight,reps,nd);
-    if(nd){
-      const hist=LS.get(histKey(),[]);
-      hist.push({date:today(),day:PLAN[dayIdx].day,
-        exercise:PLAN[dayIdx].sections[secIdx].exercises[exIdx].name,
-        set:setNum,weight,reps});
-      LS.set(histKey(),hist.slice(-500));
-      if(restSeconds>0)onStartRest(restSeconds);
-    }
+  const exName=PLAN[dayIdx].sections[secIdx].exercises[exIdx].name;
+  const hid=`${dayIdx}_${secIdx}_${exIdx}_${setNum}`;
+
+  /* history stays in sync: un-checking removes the entry, editing a checked set updates it (no duplicates) */
+  const save=(w,r,d,touchHist)=>{
+    LS.set(k,{weight:w,reps:r,done:d});
+    if(!touchHist)return;
+    const hist=LS.get(histKey(),[]).filter(h=>!(h.date===today()&&h.id===hid));
+    if(d)hist.push({date:today(),day:PLAN[dayIdx].day,exercise:exName,set:setNum,weight:w,reps:r,id:hid});
+    LS.set(histKey(),hist.slice(-500));
+  };
+  const toggle=()=>{
+    const nd=!done;
+    setDone(nd);save(weight,reps,nd,true);
+    if(nd&&restSeconds>0)onStartRest(restSeconds);
+    bump();
   };
   return(
-    <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",
-      background:done?C.greenLight:C.white,borderRadius:6,marginBottom:4,
-      border:`1px solid ${done?C.green:C.grayBorder}`}}>
-      <div style={{fontSize:11,color:C.gray,minWidth:36,fontWeight:"bold"}}>Set {setNum}</div>
-      <input value={weight} onChange={e=>{setWeight(e.target.value);save(e.target.value,reps,done);}}
-        placeholder="lbs" style={{...inp,width:60,textAlign:"center",padding:"5px 8px",fontSize:12}}/>
-      <span style={{fontSize:11,color:C.gray}}>×</span>
-      <input value={reps} onChange={e=>{setReps(e.target.value);save(weight,e.target.value,done);}}
-        placeholder={defaultReps} style={{...inp,width:60,textAlign:"center",padding:"5px 8px",fontSize:12}}/>
-      <span style={{fontSize:11,color:C.gray,flex:1}}>reps</span>
-      <div onClick={toggleDone} style={{width:22,height:22,borderRadius:5,
-        border:`2px solid ${done?C.green:C.grayBorder}`,background:done?C.green:C.white,
-        display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>
-        {done&&<span style={{color:C.white,fontSize:12,fontWeight:"bold"}}>✓</span>}
-      </div>
+    <div className={"set"+(done?" done":"")}>
+      <span className="set-n">Set {setNum}</span>
+      <label className="fw">
+        <input className="field" inputMode="decimal" aria-label={`Set ${setNum} weight in pounds`} placeholder="0" value={weight}
+          onChange={e=>{setWeight(e.target.value);save(e.target.value,reps,done,done);}}/>
+        <em>lbs</em>
+      </label>
+      <label className="fw">
+        <input className="field" aria-label={`Set ${setNum} reps`} placeholder={defaultReps} value={reps}
+          onChange={e=>{setReps(e.target.value);save(weight,e.target.value,done,done);}}/>
+        <em>reps</em>
+      </label>
+      <button className="check" aria-pressed={done} aria-label={`Set ${setNum} ${done?"done — tap to undo":"— mark done"}`} onClick={toggle}><Check/></button>
     </div>
   );
 }
 
-// ── EXERCISE CARD ──────────────────────────────────────────────────────
+/* ── EXERCISE CARD ─────────────────────────────────────── */
 function ExCard({ex,dayIdx,secIdx,exIdx,onStartRest}){
   const[open,setOpen]=useState(false);
   const[showSwaps,setShowSwaps]=useState(false);
-  const sets=Array.from({length:ex.sets},(_,i)=>i+1);
-  const allDone=sets.every(s=>(LS.get(setKey(dayIdx,secIdx,exIdx,s),{done:false})).done);
+  const done=exDone(dayIdx,secIdx,exIdx);
   const hasSwaps=ex.swaps&&ex.swaps.length>0;
+  const sets=Array.from({length:ex.sets},(_,i)=>i+1);
   return(
-    <div style={{marginBottom:8,borderRadius:8,overflow:"hidden",
-      boxShadow:"0 1px 4px rgba(0,0,0,0.07)",
-      border:`1px solid ${allDone?C.green:C.grayBorder}`}}>
-      <div onClick={()=>setOpen(!open)} style={{padding:"10px 14px",cursor:"pointer",
-        background:allDone?C.greenLight:C.white,
-        display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:"bold",fontSize:13,color:allDone?C.green:C.navy}}>{ex.name}</div>
-          <div style={{fontSize:11,color:C.teal2,marginTop:2}}>
-            {ex.sets} × {ex.reps}
-            {ex.tempo?` | ${ex.tempo}`:""}
-            {ex.rest>0?` | Rest ${fmt(ex.rest)}`:""}
-          </div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-          {allDone&&<span style={{fontSize:11,fontWeight:"bold",color:C.green}}>✓</span>}
-          {hasSwaps&&(
-            <button onClick={e=>{e.stopPropagation();setShowSwaps(!showSwaps);}}
-              style={btn(showSwaps?C.teal:C.navy2,C.white,true,false,{fontSize:10,padding:"3px 8px"})}>
-              {showSwaps?"×":"Swap"}
-            </button>
-          )}
-          <span style={{color:C.gray,fontSize:16,marginLeft:2}}>{open?"▲":"▼"}</span>
-        </div>
+    <div className={"ex"+(done?" done":"")}>
+      <div className="ex-head">
+        <button className="ex-toggle" aria-expanded={open} onClick={()=>setOpen(!open)}>
+          <span className="ex-idx">{done?<Check/>:exIdx+1}</span>
+          <span className="ex-text">
+            <span className="ex-name">{ex.name}</span>
+            <span className="ex-meta">
+              <span className="meta">{ex.sets} × {ex.reps}</span>
+              {ex.tempo?<span className="meta">Tempo {ex.tempo}</span>:null}
+              {ex.rest>0?<span className="meta">Rest {fmt(ex.rest)}</span>:null}
+            </span>
+          </span>
+          <Chev open={open}/>
+        </button>
+        {hasSwaps&&(
+          <button className={"swap"+(showSwaps?" on":"")} aria-expanded={showSwaps} onClick={()=>setShowSwaps(!showSwaps)}>
+            {showSwaps?"Close":"Swap"}
+          </button>
+        )}
       </div>
       {showSwaps&&(
-        <div style={{background:C.amberLight,borderTop:`1px solid ${C.amber}33`,padding:"8px 14px"}}>
-          <div style={{fontSize:10,color:C.amber,fontWeight:"bold",marginBottom:6,letterSpacing:0.5}}>EXERCISE SWAPS</div>
-          {ex.swaps.map((s,i)=>(
-            <div key={i} style={{fontSize:11,color:C.navy,padding:"5px 0",
-              borderBottom:i<ex.swaps.length-1?`1px solid ${C.amber}22`:"none",lineHeight:1.4}}>
-              → {s}
-            </div>
-          ))}
+        <div className="swaps">
+          <span className="label">Exercise Swaps</span>
+          {ex.swaps.map((s,i)=>{
+            const cut=s.indexOf(" — ");
+            return cut>0
+              ?<div className="swap-row" key={i}><b>{s.slice(0,cut)}</b> <span>— {s.slice(cut+3)}</span></div>
+              :<div className="swap-row" key={i}>{s}</div>;
+          })}
         </div>
       )}
       {open&&(
-        <div style={{padding:"10px 14px",background:C.grayLight,borderTop:`1px solid ${C.grayBorder}`}}>
-          <div style={{fontSize:11,color:C.gray,fontStyle:"italic",marginBottom:10,
-            lineHeight:1.5,whiteSpace:"pre-line"}}>{ex.cue}</div>
+        <div className="ex-body">
+          <div className="cue">{ex.cue}</div>
           {sets.map(s=>(
-            <SetRow key={s} dayIdx={dayIdx} secIdx={secIdx} exIdx={exIdx}
-              setNum={s} defaultReps={ex.reps} restSeconds={ex.rest||0} onStartRest={onStartRest}/>
+            <SetRow key={s} dayIdx={dayIdx} secIdx={secIdx} exIdx={exIdx} setNum={s}
+              defaultReps={ex.reps} restSeconds={ex.rest||0} onStartRest={onStartRest}/>
           ))}
         </div>
       )}
@@ -448,83 +733,81 @@ function ExCard({ex,dayIdx,secIdx,exIdx,onStartRest}){
   );
 }
 
-// ── DAY VIEW ───────────────────────────────────────────────────────────
+const Ring=({pct})=>{
+  const R=34,CF=2*Math.PI*R;
+  return(
+    <div className={"ring"+(pct===100?" full":"")}>
+      <svg viewBox="0 0 80 80" aria-hidden="true">
+        <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="var(--accent)"/><stop offset="1" stopColor="var(--accent2)"/></linearGradient></defs>
+        <circle className="trk" cx="40" cy="40" r={R} fill="none" strokeWidth="7"/>
+        <circle className="bar" cx="40" cy="40" r={R} fill="none" strokeWidth="7" strokeLinecap="round" strokeDasharray={CF} strokeDashoffset={CF*(1-pct/100)}/>
+      </svg>
+      <b>{pct}%</b>
+    </div>
+  );
+};
+
+/* ── DAY VIEW ──────────────────────────────────────────── */
 function DayView({dayIdx,onStartRest}){
   const day=PLAN[dayIdx];
   const[note,setNote]=useState(()=>LS.get(noteKey(dayIdx),""));
   const[showNote,setShowNote]=useState(false);
   const saveNote=v=>{setNote(v);LS.set(noteKey(dayIdx),v);};
-  const totalEx=day.sections.reduce((a,s)=>a+s.exercises.length,0);
-  const doneEx=day.sections.reduce((a,sec)=>a+sec.exercises.reduce((b,ex,ei)=>{
-    const si=day.sections.indexOf(sec);
-    return b+(Array.from({length:ex.sets},(_,i)=>i+1).every(
-      s2=>(LS.get(setKey(dayIdx,si,ei,s2),{done:false})).done)?1:0);
-  },0),0);
-  const pct=Math.round((doneEx/totalEx)*100);
-  const carbColor=day.carbTier==="HIGH"?C.green:day.carbTier==="MODERATE"?C.amber:C.red;
+  const{total,done}=dayUnits(dayIdx);
+  const pct=total?Math.round((done/total)*100):0;
   return(
-    <div style={{paddingBottom:24}}>
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-          <span style={{fontSize:12,fontWeight:"bold",color:C.navy}}>Session Progress</span>
-          <span style={{fontSize:12,fontWeight:"bold",color:pct===100?C.green:C.teal}}>{doneEx}/{totalEx}  {pct}%</span>
-        </div>
-        <div style={{background:C.grayLight,borderRadius:6,height:10}}>
-          <div style={{background:pct===100?C.green:C.teal,width:`${pct}%`,height:10,borderRadius:6,transition:"width 0.3s"}}/>
-        </div>
-        {pct===100&&<div style={{textAlign:"center",marginTop:8,fontSize:12,fontWeight:"bold",color:C.green}}>Session complete 💪</div>}
-      </div>
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",
-        padding:"10px 14px",marginBottom:12,display:"flex",alignItems:"center",gap:12}}>
-        <div style={{flex:1}}>
-          <div style={{fontSize:10,color:C.gray,fontWeight:"bold",letterSpacing:0.5,marginBottom:2}}>CALORIE TARGET</div>
-          <div style={{fontSize:13,fontWeight:"bold",color:C.navy}}>{day.calories}</div>
-        </div>
-        <div style={{borderLeft:`1px solid ${C.grayBorder}`,paddingLeft:12}}>
-          <div style={{fontSize:10,color:C.gray,fontWeight:"bold",letterSpacing:0.5,marginBottom:2}}>CARB TIER</div>
-          <span style={{background:carbColor+"22",color:carbColor,border:`1px solid ${carbColor}44`,
-            borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:"bold"}}>{day.carbTier}</span>
+    <div>
+      <div className="card hero-prog">
+        <Ring pct={pct}/>
+        <div className="hp-text">
+          <span className="label">Session Progress</span>
+          <span className="prog-n" style={{color:pct===100?"var(--good)":"var(--text)"}}>{done}/{total} · {pct}%</span>
+          {pct===100&&<div className="complete">Session complete</div>}
         </div>
       </div>
+
+      <div className="tiles">
+        <div className="tile">
+          <span className="label">Calorie Target</span>
+          <span className="big">{day.calories}</span>
+        </div>
+        <div className="tile">
+          <span className="label">Carb Tier</span>
+          <span className="chip" style={{"--tone":tierTone(day.carbTier)}}>{day.carbTier}</span>
+        </div>
+      </div>
+
       {day.zone2&&(
-        <div style={{background:C.tealLight,border:`1px solid ${C.teal}44`,borderRadius:8,
-          padding:"8px 14px",marginBottom:12,fontSize:11,color:C.teal2,fontWeight:"bold"}}>
-          📍 Zone 2 — 40–60 min | HR 120–140 bpm | Add electrolytes today
-        </div>
+        <div className="banner">Zone 2 — 40–60 min | HR 120–140 bpm | Add electrolytes today</div>
       )}
+
       {day.sections.map((sec,si)=>(
-        <div key={si} style={{marginBottom:14}}>
-          <div style={{background:sec.color,color:C.white,padding:"7px 14px",
-            borderRadius:"8px 8px 0 0",fontSize:11,fontWeight:"bold",letterSpacing:1}}>{sec.name}</div>
-          <div style={{background:C.white,borderRadius:"0 0 8px 8px",
-            boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:10}}>
-            {sec.exercises.map((ex,ei)=>(
-              <ExCard key={ei} ex={ex} dayIdx={dayIdx} secIdx={si} exIdx={ei} onStartRest={onStartRest}/>
-            ))}
+        <section key={si}>
+          <div className="sec-h" style={{"--tone":sec.color}}>
+            <i className="bar"/><h3 className="h3">{sec.name}</h3>
           </div>
-        </div>
+          {sec.exercises.map((ex,ei)=>(
+            <ExCard key={ei} ex={ex} dayIdx={dayIdx} secIdx={si} exIdx={ei} onStartRest={onStartRest}/>
+          ))}
+        </section>
       ))}
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-          <span style={{fontSize:12,fontWeight:"bold",color:C.navy}}>Session Notes</span>
-          <button onClick={()=>setShowNote(!showNote)} style={btn(showNote?C.gray:C.teal,C.white,true)}>
-            {showNote?"Hide":"Add Note"}
-          </button>
+
+      <div className="card" style={{marginTop:22}}>
+        <div className="card-head" style={{marginBottom:showNote||note?12:0}}>
+          <h3 className="h3">Session Notes</h3>
+          <button className="btn ghost sm" onClick={()=>setShowNote(!showNote)}>{showNote?"Hide":"Add Note"}</button>
         </div>
         {showNote&&(
-          <textarea value={note} onChange={e=>saveNote(e.target.value)}
-            placeholder="PRs? Form notes? Pain? Energy?"
-            style={{...inp,resize:"vertical",minHeight:80}}/>
+          <textarea className="textarea" value={note} onChange={e=>saveNote(e.target.value)}
+            placeholder="PRs? Form notes? Pain? Energy?"/>
         )}
-        {note&&!showNote&&(
-          <div style={{fontSize:12,color:C.navy,fontStyle:"italic",lineHeight:1.5}}>"{note}"</div>
-        )}
+        {note&&!showNote&&<div className="note-prev">"{note}"</div>}
       </div>
     </div>
   );
 }
 
-// ── NUTRITION VIEW ─────────────────────────────────────────────────────
+/* ── NUTRITION ─────────────────────────────────────────── */
 function NutritionView(){
   const[openMeal,setOpenMeal]=useState(null);
   const[showSupp,setShowSupp]=useState(false);
@@ -532,114 +815,84 @@ function NutritionView(){
   const totalP=MEALS.reduce((a,m)=>a+m.protein,0);
   const totalC=MEALS.reduce((a,m)=>a+m.carbs,0);
   const totalF=MEALS.reduce((a,m)=>a+m.fat,0);
-  const mealColors=[C.teal,C.navy,C.amber,C.teal2,C.navy2];
-  const carbColors={HIGH:C.green,MODERATE:C.amber,LOW:C.red};
+  const mealTones=[C.teal,C.navy,C.amber,C.teal2,C.navy2];
+  const todayName=PLAN[TODAY_IDX].day;
   return(
-    <div style={{paddingBottom:24}}>
-      <div style={{background:C.navy,borderRadius:10,padding:14,marginBottom:12}}>
-        <div style={{fontWeight:"bold",fontSize:13,color:C.tealLight,marginBottom:10}}>Daily Totals</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8}}>
-          {[["Cal",`~${totalCal}`,C.tealLight],["Protein",`${totalP}g`,C.teal],["Carbs",`${totalC}g`,C.amber],["Fat",`${totalF}g`,C.gray]].map(([label,val,col])=>(
-            <div key={label} style={{textAlign:"center"}}>
-              <div style={{fontSize:16,fontWeight:"bold",color:col}}>{val}</div>
-              <div style={{fontSize:10,color:"#ffffff88",marginTop:2}}>{label}</div>
-            </div>
+    <div>
+      <div className="hero">
+        <span className="label">Daily Totals</span>
+        <div className="macros">
+          {[["Cal",`~${totalCal}`,"var(--text)"],["Protein",`${totalP}g`,"var(--c-teal)"],["Carbs",`${totalC}g`,"var(--warn)"],["Fat",`${totalF}g`,"var(--muted)"]].map(([l,v,c])=>(
+            <div className="macro" key={l} style={{"--tone":c}}><b>{v}</b><span>{l}</span></div>
           ))}
         </div>
       </div>
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
-        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:10}}>Calorie Cycling</div>
+
+      <div className="card">
+        <div className="card-head"><h2 className="h2">Calorie Cycling</h2></div>
         {CALORIE_CYCLING.map((d,i)=>(
-          <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-            padding:"6px 0",borderBottom:i<CALORIE_CYCLING.length-1?`1px solid ${C.grayBorder}`:"none"}}>
-            <span style={{fontSize:12,fontWeight:"bold",color:C.navy}}>{d.day}</span>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <span style={{fontSize:12,color:C.gray}}>{d.range} kcal</span>
-              <span style={{background:carbColors[d.tier]+"22",color:carbColors[d.tier],
-                border:`1px solid ${carbColors[d.tier]}44`,borderRadius:20,
-                padding:"1px 8px",fontSize:10,fontWeight:"bold"}}>{d.tier}</span>
-            </div>
+          <div className="cyc" key={i}>
+            <span className={"d"+(d.day===todayName?" now":"")}>{d.day}</span>
+            <span className="r">
+              <span className="kcal">{d.range} kcal</span>
+              <span className="chip" style={{"--tone":tierTone(d.tier)}}>{d.tier}</span>
+            </span>
           </div>
         ))}
       </div>
-      {MEALS.map((meal,mi)=>(
-        <div key={mi} style={{marginBottom:10,borderRadius:10,overflow:"hidden",
-          boxShadow:"0 1px 6px rgba(0,0,0,0.07)",
-          border:`1px solid ${openMeal===mi?mealColors[mi]:C.grayBorder}`}}>
-          <div onClick={()=>setOpenMeal(openMeal===mi?null:mi)}
-            style={{padding:"12px 14px",cursor:"pointer",
-              background:openMeal===mi?mealColors[mi]+"11":C.white,
-              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div>
-              <div style={{fontWeight:"bold",fontSize:13,color:mealColors[mi]}}>{meal.name}</div>
-              <div style={{fontSize:11,color:C.gray,marginTop:2}}>{meal.time} · ~{meal.cal} kcal</div>
-            </div>
-            <div style={{textAlign:"right"}}>
-              <div style={{fontSize:10,color:C.gray,marginBottom:3}}>P {meal.protein}g · C {meal.carbs}g · F {meal.fat}g</div>
-              <span style={{fontSize:16,color:C.gray}}>{openMeal===mi?"▲":"▼"}</span>
-            </div>
-          </div>
-          {openMeal===mi&&(
-            <div style={{padding:"10px 14px",background:C.grayLight,borderTop:`1px solid ${C.grayBorder}`}}>
-              {meal.items.map((item,ii)=>(
-                <div key={ii} style={{marginBottom:ii<meal.items.length-1?12:0}}>
-                  <div style={{fontSize:11,fontWeight:"bold",color:mealColors[mi],marginBottom:5,letterSpacing:0.5}}>
-                    {item.section.toUpperCase()}
-                  </div>
-                  {item.foods.map((f,fi)=>(
-                    <div key={fi} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
-                      borderLeft:`2px solid ${mealColors[mi]}44`,marginBottom:2}}>{f}</div>
-                  ))}
-                </div>
-              ))}
-              <div style={{marginTop:10,padding:"8px 10px",background:mealColors[mi]+"11",
-                borderRadius:6,display:"flex",gap:16}}>
-                {[["Protein",meal.protein+"g"],["Carbs",meal.carbs+"g"],["Fat",meal.fat+"g"],["Cal","~"+meal.cal]].map(([l,v])=>(
-                  <div key={l} style={{textAlign:"center"}}>
-                    <div style={{fontSize:14,fontWeight:"bold",color:mealColors[mi]}}>{v}</div>
-                    <div style={{fontSize:10,color:C.gray}}>{l}</div>
+
+      {MEALS.map((meal,mi)=>{
+        const open=openMeal===mi;
+        return(
+          <div className="meal" key={mi} style={{"--tone":mealTones[mi]}}>
+            <button className="meal-head" aria-expanded={open} onClick={()=>setOpenMeal(open?null:mi)}>
+              <span className="meal-t">
+                <span className="meal-n" style={{display:"block"}}>{meal.name}</span>
+                <span className="meal-s" style={{display:"block"}}>{meal.time} · ~{meal.cal} kcal</span>
+                <span className="meal-m" style={{display:"block"}}>P {meal.protein}g · C {meal.carbs}g · F {meal.fat}g</span>
+              </span>
+              <Chev open={open}/>
+            </button>
+            {open&&(
+              <div className="meal-body">
+                {meal.items.map((item,ii)=>(
+                  <div className="meal-sec" key={ii}>
+                    <span className="label">{item.section}</span>
+                    {item.foods.map((f,fi)=><div className="food" key={fi}>{f}</div>)}
                   </div>
                 ))}
+                <div className="macros">
+                  {[["Protein",meal.protein+"g"],["Carbs",meal.carbs+"g"],["Fat",meal.fat+"g"],["Cal","~"+meal.cal]].map(([l,v])=>(
+                    <div className="macro" key={l} style={{"--tone":mealTones[mi]}}><b>{v}</b><span>{l}</span></div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      ))}
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:10}}>
-        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:8}}>Day Adjustments</div>
-        <div style={{marginBottom:10}}>
-          <div style={{fontSize:11,fontWeight:"bold",color:C.green,marginBottom:5}}>TRAINING DAYS — Add any one:</div>
-          {["1 extra cup rice","2 bananas","2 cups potatoes"].map((t,i)=>(
-            <div key={i} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
-              borderLeft:`2px solid ${C.green}44`,marginBottom:2}}>+ {t}</div>
-          ))}
-        </div>
-        <div>
-          <div style={{fontSize:11,fontWeight:"bold",color:C.amber,marginBottom:5}}>REST DAYS — Reduce:</div>
-          <div style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",borderLeft:`2px solid ${C.amber}44`}}>
-            −50–100g carbs from rice, oats, pasta, or potatoes. Keep protein consistent.
+            )}
           </div>
-        </div>
+        );
+      })}
+
+      <div className="card" style={{marginTop:14}}>
+        <div className="card-head"><h2 className="h2">Day Adjustments</h2></div>
+        <div className="list-h" style={{color:"var(--good)"}}>Training days — Add any one:</div>
+        {["1 extra cup rice","2 bananas","2 cups potatoes"].map((t,i)=>(
+          <div className="li" key={i} style={{"--tone":"var(--good)"}}>+ {t}</div>
+        ))}
+        <div className="list-h" style={{color:"var(--warn)",marginTop:16}}>Rest days — Reduce:</div>
+        <div className="li" style={{"--tone":"var(--warn)"}}>−50–100g carbs from rice, oats, pasta, or potatoes. Keep protein consistent.</div>
       </div>
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:showSupp?10:0}}>
-          <span style={{fontWeight:"bold",color:C.navy,fontSize:13}}>Supplements</span>
-          <button onClick={()=>setShowSupp(!showSupp)} style={btn(showSupp?C.gray:C.teal,C.white,true)}>
-            {showSupp?"Hide":"Show"}
-          </button>
+
+      <div className="card">
+        <div className="card-head" style={{marginBottom:showSupp?12:0}}>
+          <h2 className="h2">Supplements</h2>
+          <button className="btn ghost sm" onClick={()=>setShowSupp(!showSupp)}>{showSupp?"Hide":"Show"}</button>
         </div>
         {showSupp&&(
           <div>
-            <div style={{fontSize:11,fontWeight:"bold",color:C.teal,marginBottom:5}}>DAILY</div>
-            {SUPPLEMENTS.daily.map((s,i)=>(
-              <div key={i} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
-                borderLeft:`2px solid ${C.teal}44`,marginBottom:3}}>{s}</div>
-            ))}
-            <div style={{fontSize:11,fontWeight:"bold",color:C.amber,marginTop:10,marginBottom:5}}>RECOVERY SUPPORT</div>
-            {SUPPLEMENTS.recovery.map((s,i)=>(
-              <div key={i} style={{fontSize:12,color:C.navy,padding:"2px 0 2px 10px",
-                borderLeft:`2px solid ${C.amber}44`,marginBottom:3}}>{s}</div>
-            ))}
+            <div className="list-h" style={{color:"var(--c-teal)"}}>Daily</div>
+            {SUPPLEMENTS.daily.map((s,i)=><div className="li" key={i} style={{"--tone":"var(--c-teal)"}}>{s}</div>)}
+            <div className="list-h" style={{color:"var(--warn)",marginTop:16}}>Recovery Support</div>
+            {SUPPLEMENTS.recovery.map((s,i)=><div className="li" key={i} style={{"--tone":"var(--warn)"}}>{s}</div>)}
           </div>
         )}
       </div>
@@ -647,188 +900,156 @@ function NutritionView(){
   );
 }
 
-// ── HISTORY VIEW ───────────────────────────────────────────────────────
+/* ── HISTORY ───────────────────────────────────────────── */
 function HistoryView(){
   const hist=LS.get(histKey(),[]).slice().reverse();
   const byDate={};
   hist.forEach(h=>{if(!byDate[h.date])byDate[h.date]=[];byDate[h.date].push(h);});
   const dates=Object.keys(byDate).sort().reverse().slice(0,14);
-  if(hist.length===0) return(
-    <div style={{textAlign:"center",color:C.gray,padding:40,fontStyle:"italic"}}>
-      No history yet. Check off sets during your sessions to build your log.
-    </div>
-  );
+  if(hist.length===0)return<div className="empty">No history yet. Check off sets during your sessions to build your log.</div>;
   return(
-    <div style={{paddingBottom:24}}>
+    <div>
       {dates.map(date=>(
-        <div key={date} style={{background:C.white,borderRadius:10,
-          boxShadow:"0 1px 6px rgba(0,0,0,0.07)",marginBottom:10,overflow:"hidden"}}>
-          <div style={{background:C.navy,color:C.white,padding:"8px 14px",fontSize:11,fontWeight:"bold"}}>{date}</div>
-          <div style={{padding:10}}>
-            {byDate[date].map((h,i)=>(
-              <div key={i} style={{display:"flex",justifyContent:"space-between",
-                padding:"4px 6px",borderBottom:i<byDate[date].length-1?`1px solid ${C.grayBorder}`:"none",
-                fontSize:12}}>
-                <span style={{color:C.navy}}>{h.exercise}</span>
-                <span style={{color:C.teal,fontWeight:"bold"}}>
-                  Set {h.set} — {h.weight?`${h.weight} lbs × `:""}{ h.reps} reps
-                </span>
-              </div>
-            ))}
-          </div>
+        <div className="card hday" key={date}>
+          <div className="hday-h">{date}</div>
+          {byDate[date].map((h,i)=>(
+            <div className="hrow" key={i}>
+              <span>{h.exercise}</span>
+              <b>Set {h.set} — {h.weight?`${h.weight} lbs × `:""}{h.reps} reps</b>
+            </div>
+          ))}
         </div>
       ))}
     </div>
   );
 }
 
-// ── OVERVIEW ───────────────────────────────────────────────────────────
+/* ── OVERVIEW ──────────────────────────────────────────── */
+const PRINCIPLES=[
+  {label:"Protein Daily",tone:"var(--c-teal)",note:"220–250g every day regardless of carb tier."},
+  {label:"Hydration",tone:"var(--c-navy)",note:"3–5 liters water daily. Add electrolytes on combat, dungeon, sauna, and outdoor days."},
+  {label:"Sleep",tone:"var(--c-green)",note:"7.5–9 hours. Non-negotiable for recovery and performance."},
+  {label:"Mobility Daily",tone:"var(--c-teal2)",note:"Day 7 restoration flow can be done every day for recovery and longevity."},
+  {label:"Creatine 5g",tone:"var(--c-amber)",note:"Daily. Plus magnesium glycinate, D3/K2, B12, vegan omega-3."},
+];
+const PROGRESSION=[
+  ["Strength","All sets hit top rep range → Upper +5 lb | Lower +10 lb"],
+  ["Hypertrophy","Double progression — top rep range across all sets, then add load"],
+  ["Calisthenics","More reps → Harder variation → Slower tempo → Added weight"],
+  ["Conditioning","More rounds, density, speed, or reduced rest periods"],
+  ["Tempo (3-1-1)","3s eccentric · 1s pause · 1s concentric"],
+];
+
 function OverviewView({onSelectDay}){
-  const carbColors={HIGH:C.green,MODERATE:C.amber,LOW:C.red};
-  const principles=[
-    {label:"Protein Daily",color:C.teal,note:"220–250g every day regardless of carb tier."},
-    {label:"Hydration",color:C.navy,note:"3–5 liters water daily. Add electrolytes on combat, dungeon, sauna, and outdoor days."},
-    {label:"Sleep",color:C.green,note:"7.5–9 hours. Non-negotiable for recovery and performance."},
-    {label:"Mobility Daily",color:C.teal2,note:"Day 7 restoration flow can be done every day for recovery and longevity."},
-    {label:"Creatine 5g",color:C.amber,note:"Daily. Plus magnesium glycinate, D3/K2, B12, vegan omega-3."},
-  ];
   return(
-    <div style={{paddingBottom:24}}>
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
-        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:10}}>Weekly Split — Hybrid Warrior</div>
+    <div>
+      <div className="card">
+        <div className="card-head"><h2 className="h2">Weekly Split — Hybrid Warrior</h2></div>
         {PLAN.map((s,i)=>(
-          <div key={i} onClick={()=>onSelectDay(i)}
-            style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",
-              borderRadius:7,marginBottom:5,cursor:"pointer",
-              background:C.grayLight,border:`1px solid ${C.grayBorder}`}}>
-            <div style={{width:3,height:40,borderRadius:2,background:s.color,flexShrink:0}}/>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontWeight:"bold",fontSize:13,color:C.navy}}>{s.day}</div>
-              <div style={{fontSize:11,color:C.gray,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.label}</div>
-            </div>
-            <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{fontSize:10,color:C.gray,marginBottom:2}}>{s.calories}</div>
-              <span style={{background:carbColors[s.carbTier]+"22",color:carbColors[s.carbTier],
-                border:`1px solid ${carbColors[s.carbTier]}44`,borderRadius:20,
-                padding:"1px 7px",fontSize:10,fontWeight:"bold"}}>{s.carbTier}</span>
-            </div>
-            <span style={{fontSize:16,color:C.teal,marginLeft:4}}>›</span>
-          </div>
-        ))}
-      </div>
-      <div style={{background:C.white,borderRadius:10,boxShadow:"0 1px 6px rgba(0,0,0,0.07)",padding:14,marginBottom:12}}>
-        <div style={{fontWeight:"bold",color:C.navy,fontSize:13,marginBottom:10}}>System Principles</div>
-        {principles.map((f,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,
-            padding:"6px 0",borderBottom:i<principles.length-1?`1px solid ${C.grayBorder}`:"none"}}>
-            <span style={{background:f.color+"22",color:f.color,border:`1px solid ${f.color}44`,
-              borderRadius:20,padding:"1px 8px",fontSize:10,fontWeight:"bold",flexShrink:0,marginTop:1}}>{f.label}</span>
-            <span style={{fontSize:11,color:C.gray}}>{f.note}</span>
-          </div>
-        ))}
-      </div>
-      <div style={{background:C.tealLight,border:`1px solid ${C.teal}44`,borderRadius:10,padding:14}}>
-        <div style={{fontWeight:"bold",color:C.teal2,fontSize:12,marginBottom:8}}>Progression Rules</div>
-        <div style={{fontSize:11,color:C.navy,lineHeight:1.9}}>
-          <b>Strength:</b> All sets hit top rep range → Upper +5 lb | Lower +10 lb{"\n"}
-          <b>Hypertrophy:</b> Double progression — top rep range across all sets, then add load{"\n"}
-          <b>Calisthenics:</b> More reps → Harder variation → Slower tempo → Added weight{"\n"}
-          <b>Conditioning:</b> More rounds, density, speed, or reduced rest periods{"\n"}
-          <b>Tempo (3-1-1):</b> 3s eccentric · 1s pause · 1s concentric
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── APP ────────────────────────────────────────────────────────────────
-function App(){
-  const[view,setView]=useState("overview");
-  const[dayIdx,setDayIdx]=useState(null);
-  const[restSec,setRestSec]=useState(0);
-  const[restActive,setRestActive]=useState(false);
-  const timerRef=useRef(null);
-
-  useEffect(()=>{
-    if(restActive&&restSec>0){
-      timerRef.current=setTimeout(()=>setRestSec(s=>s-1),1000);
-    } else if(restActive&&restSec===0){
-      playBeep();
-      setRestActive(false);
-    }
-    return()=>clearTimeout(timerRef.current);
-  },[restActive,restSec]);
-
-  const startRest=s=>{clearTimeout(timerRef.current);setRestSec(s);setRestActive(true);};
-  const skipRest=()=>{clearTimeout(timerRef.current);setRestSec(0);setRestActive(false);};
-  const toggleRest=()=>setRestActive(a=>!a);
-  const selectDay=i=>{setDayIdx(i);setView("day");};
-  const currentDay=PLAN[dayIdx]??null;
-  const timerRunning=restActive||restSec>0;
-
-  return(
-    <div style={{minHeight:"100vh",background:C.cream,fontFamily:"Georgia,serif"}}>
-      <div style={{background:C.navy,padding:"14px 18px",position:"sticky",top:0,zIndex:100,
-        boxShadow:"0 2px 12px rgba(0,0,0,0.25)"}}>
-        <div style={{color:C.white,fontWeight:"bold",fontSize:17}}>Anthony Anderson</div>
-        <div style={{color:C.tealLight,fontSize:11,marginTop:1}}>
-          {view==="day"&&currentDay?`${currentDay.day} — ${currentDay.label}`:"Hybrid Warrior System"}
-        </div>
-      </div>
-
-      {view==="day"&&(
-        <div style={{background:C.navy2,overflowX:"auto",display:"flex",gap:6,
-          padding:"8px 12px",WebkitOverflowScrolling:"touch"}}>
-          {PLAN.map((d,i)=>(
-            <button key={i} onClick={()=>setDayIdx(i)}
-              style={btn(i===dayIdx?C.teal:C.navy,C.white,true,false,{
-                flexShrink:0,whiteSpace:"nowrap",
-                border:`1px solid ${i===dayIdx?C.teal:C.grayBorder+"66"}`})}>
-              {d.day.slice(0,3)}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div style={{padding:12}}>
-        {view==="overview"&&<OverviewView onSelectDay={selectDay}/>}
-        {view==="day"&&dayIdx!==null&&<DayView key={`${dayIdx}-${today()}`} dayIdx={dayIdx} onStartRest={startRest}/>}
-        {view==="nutrition"&&<NutritionView/>}
-        {view==="history"&&<HistoryView/>}
-      </div>
-
-      {timerRunning
-        ?<RestBar seconds={restSec} active={restActive} onStart={startRest} onSkip={skipRest} onToggle={toggleRest}/>
-        :view==="day"&&<RestPresets onStart={startRest}/>
-      }
-
-      <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.white,
-        borderTop:`1px solid ${C.grayBorder}`,display:"flex",zIndex:100}}>
-        {[
-          {id:"overview",label:"📋 Schedule"},
-          {id:"day",label:"🏋️ Session"},
-          {id:"nutrition",label:"🥗 Nutrition"},
-          {id:"history",label:"📈 History"},
-        ].map(t=>(
-          <button key={t.id} onClick={()=>{
-            setView(t.id);
-            if(t.id==="day"&&dayIdx===null)setDayIdx(0);
-          }} style={{flex:1,padding:"12px 0",border:"none",
-            borderTop:`3px solid ${view===t.id?C.teal:"transparent"}`,
-            background:C.white,fontFamily:"Georgia,serif",fontSize:10,
-            fontWeight:view===t.id?"bold":"normal",
-            color:view===t.id?C.teal:C.gray,cursor:"pointer"}}>
-            {t.label}
+          <button className="row" key={i} onClick={()=>onSelectDay(i)} style={{"--tone":s.color}}>
+            <i className="rail"/>
+            <span className="row-main">
+              <span className="row-day">{s.day}</span>
+              <span className="row-lab" style={{display:"block"}}>{i===TODAY_IDX&&<span className="today-tag">Today</span>}{s.label}</span>
+            </span>
+            <span className="row-end">
+              <span className="kcal">{s.calories}</span>
+              <span className="chip" style={{"--tone":tierTone(s.carbTier)}}>{s.carbTier}</span>
+            </span>
+            <Svg size={18}><path d="M9 6l6 6-6 6"/></Svg>
           </button>
         ))}
       </div>
-      <div style={{height:60}}/>
+
+      <div className="card">
+        <div className="card-head"><h2 className="h2">System Principles</h2></div>
+        {PRINCIPLES.map((p,i)=>(
+          <div className="princ" key={i} style={{"--tone":p.tone}}>
+            <span className="k">{p.label}</span>
+            <span className="v">{p.note}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="card prog-card">
+        <div className="card-head"><h2 className="h2" style={{color:"var(--accent)"}}>Progression Rules</h2></div>
+        {PROGRESSION.map(([k,v],i)=>(
+          <div className="princ" key={i} style={{"--tone":"var(--accent)"}}>
+            <span className="k">{k}</span>
+            <span className="v" style={{color:"var(--text)"}}>{v}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-const root=ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App/>);
+/* ── APP ───────────────────────────────────────────────── */
+function App(){
+  const[view,setView]=useState("overview");
+  const[dayIdx,setDayIdx]=useState(null);
+  const[,setTick]=useState(0);
+  const bump=()=>setTick(t=>t+1);
+  const rest=useRest();
+
+  useEffect(()=>{window.scrollTo(0,0);},[view,dayIdx]);
+  useEffect(()=>{ /* keep the active day pill visible in the scrolling bar */
+    const el=document.querySelector('.pill[aria-current="true"]');
+    if(el&&el.scrollIntoView)el.scrollIntoView({inline:"center",block:"nearest"});
+  },[view,dayIdx]);
+
+  const selectDay=i=>{setDayIdx(i);setView("day");};
+  const cur=dayIdx!==null?PLAN[dayIdx]:null;
+  const heading=view==="day"&&cur
+    ?{eyebrow:`Anthony Anderson · ${cur.day}`,title:cur.label,sub:cur.calories+" · "+cur.carbTier+" carb"}
+    :{eyebrow:"Hybrid Warrior System",title:"Anthony Anderson",
+      sub:view==="overview"?"Weekly Split":view==="nutrition"?"Nutrition":"History"};
+  const dockOn=rest.running||view==="day";
+
+  const TABS=[["overview","Schedule"],["day","Session"],["nutrition","Nutrition"],["history","History"]];
+
+  return(
+    <Tick.Provider value={bump}>
+      <div>
+        <header className="top">
+          <div className="top-in">
+            <div className="eyebrow">{heading.eyebrow}</div>
+            <div className="title">{heading.title}</div>
+            <div className="sub">{heading.sub}</div>
+            {view==="day"&&(
+              <div className="pills" role="tablist" aria-label="Training day">
+                {PLAN.map((d,i)=>(
+                  <button key={i} className={"pill"+(i===TODAY_IDX?" today":"")} aria-current={i===dayIdx}
+                    onClick={()=>setDayIdx(i)}>{d.day.slice(0,3)}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main className={"main"+(dockOn?" has-dock":"")}>
+          {view==="overview"&&<OverviewView onSelectDay={selectDay}/>}
+          {view==="day"&&dayIdx!==null&&<DayView key={`${dayIdx}-${today()}`} dayIdx={dayIdx} onStartRest={rest.start}/>}
+          {view==="nutrition"&&<NutritionView/>}
+          {view==="history"&&<HistoryView/>}
+        </main>
+
+        {dockOn&&<RestDock rest={rest}/>}
+
+        <nav className="nav" aria-label="Main">
+          {TABS.map(([id,label])=>(
+            <button key={id} aria-current={view===id?"page":undefined}
+              onClick={()=>{setView(id);if(id==="day"&&dayIdx===null)setDayIdx(TODAY_IDX);}}>
+              {NAV_ICONS[id]}<span>{label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    </Tick.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
